@@ -11,6 +11,7 @@ const SETTINGS_KEY = 'edstellar_settings';
 // Default Supabase config — anon key is public, safe to hardcode
 const DEFAULT_SUPABASE_URL = 'https://supabasekong-dfpiopwrqgdf8iods10d4546.187.127.140.202.sslip.io';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoiYW5vbiJ9.[REDACTED]';
+const DEFAULT_SUPABASE_SERVICE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.[REDACTED]';
 
 let _supabaseClient = null;
 let _currentUser = null;
@@ -28,6 +29,24 @@ function _getConfig() {
   } catch {
     return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY };
   }
+}
+
+/**
+ * Get a Supabase client using the service role key (for admin operations like auth.admin.createUser).
+ * Creates a new instance each call — not cached, since it's only used for privileged one-off operations.
+ */
+function getAdminClient() {
+  const { url } = _getConfig();
+  const saved = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch { return {}; } })();
+  const serviceKey = saved.supabaseServiceKey || DEFAULT_SUPABASE_SERVICE_KEY;
+  if (!url || !serviceKey) {
+    console.warn('[supabase-client] No service role key configured in Settings.');
+    return null;
+  }
+  return supabase.createClient(url, serviceKey, {
+    db: { schema: 'Corporate-Assessment-Tool' },
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
 }
 
 /**
