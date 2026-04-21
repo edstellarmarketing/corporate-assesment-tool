@@ -34,7 +34,14 @@ async function _getAiConfig() {
     config[row.key] = val;
   });
 
+  // Fallback chain: Supabase settings → localStorage → Vercel env var
+  let localKey = '';
+  try {
+    const ls = JSON.parse(localStorage.getItem('edstellar_settings') || '{}');
+    localKey = ls.openrouterKey || '';
+  } catch(e) {}
   const openrouterKey = config.openrouterKey || config.openrouter_key
+    || localKey
     || (window.env && window.env.OPENROUTER_KEY) || '';
   if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
 
