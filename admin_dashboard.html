@@ -1010,29 +1010,55 @@
       addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
       return;
     }
+    let authUserId = null;
     const { data: authData, error: authError } = await adminSb.auth.admin.createUser({
       email: email,
       email_confirm: true,
       user_metadata: { first_name: first, last_name: last }
     });
     if (authError) {
-      errEl.textContent = 'Auth error: ' + authError.message;
-      errEl.style.display = 'block';
-      addEmpBtn.disabled = false;
-      addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
-      return;
+      if (authError.message && authError.message.toLowerCase().includes('already registered')) {
+        // Auth user exists — check if they already have a profile
+        const { data: existingProfile } = await sb.from('v2-users').select('id').eq('email', email).maybeSingle();
+        if (existingProfile) {
+          errEl.textContent = 'An employee with this email already exists.';
+          errEl.style.display = 'block';
+          addEmpBtn.disabled = false;
+          addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
+          return;
+        }
+        // Orphaned auth user — fetch their ID and create the missing profile
+        const { data: userList } = await adminSb.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        const existing = userList?.users?.find(u => u.email === email);
+        if (!existing) {
+          errEl.textContent = 'Auth error: ' + authError.message;
+          errEl.style.display = 'block';
+          addEmpBtn.disabled = false;
+          addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
+          return;
+        }
+        authUserId = existing.id;
+      } else {
+        errEl.textContent = 'Auth error: ' + authError.message;
+        errEl.style.display = 'block';
+        addEmpBtn.disabled = false;
+        addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
+        return;
+      }
+    } else {
+      authUserId = authData.user.id;
     }
 
     const { error } = await sb.from('v2-users').insert({
-      id: authData.user.id,
+      id: authUserId,
       org_id: orgId, first_name: first, last_name: last, email: email,
       employee_id: empId, department_id: deptId || null, job_title: title,
       join_date: joinDate || null, status: status, role: 'employee'
     });
 
     if (error) {
-      // Roll back the auth user since profile insert failed
-      await adminSb.auth.admin.deleteUser(authData.user.id);
+      // Roll back the auth user since profile insert failed (only if we just created it)
+      if (authData) await adminSb.auth.admin.deleteUser(authUserId);
       errEl.textContent = 'Error: ' + error.message;
       errEl.style.display = 'block';
       addEmpBtn.disabled = false;
