@@ -37,12 +37,15 @@ async function _getAiConfig() {
   const openrouterKey = config.openrouterKey || config.openrouter_key;
   if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
 
+  const defaultModel = config.defaultModel || config.default_model || 'anthropic/claude-sonnet-4';
+
   _aiConfigCache = {
     apiKey: openrouterKey,
-    routeGrading: config.routeGrading || config.route_grading || 'anthropic/claude-sonnet-4',
-    routeCode: config.routeCode || config.route_code || 'deepseek/deepseek-chat-v3-0324',
-    routeNotes: config.routeNotes || config.route_notes || 'anthropic/claude-sonnet-4',
-    routeQuestions: config.routeQuestions || config.route_questions || 'openai/gpt-4o',
+    defaultModel,
+    routeGrading: config.routeGrading || config.route_grading || defaultModel,
+    routeCode: config.routeCode || config.route_code || defaultModel,
+    routeNotes: config.routeNotes || config.route_notes || defaultModel,
+    routeQuestions: config.routeQuestions || config.route_questions || defaultModel,
     routeFallback: config.routeFallback || config.route_fallback || 'anthropic/claude-haiku-4',
     temperature: parseFloat(config.temperature || '0.3'),
     maxTokens: parseInt(config.maxTokensGrading || config.max_tokens_grading || '2048')

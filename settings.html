@@ -261,8 +261,26 @@
       <div class="form-hint">Get your key from <strong>openrouter.ai/keys</strong> — all model requests are routed through OpenRouter</div>
     </div>
 
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-sm" onclick="testOpenRouter()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Test Connection
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="clearOpenRouter()">Clear</button>
+    </div>
+
+    <div class="test-result" id="openrouterTestResult"></div>
+  </div>
+
+  <!-- ============ 02b · DEFAULT LLM MODEL ============ -->
+  <div class="sect-head">
+    <h2><span class="num">02b</span>Default LLM model</h2>
+    <span class="meta">Global fallback used when no task-specific route overrides it</span>
+  </div>
+
+  <div class="settings-card">
     <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Default model for AI grading</label>
+      <label class="form-label">Default model</label>
       <select class="form-select" id="defaultModel">
         <option value="">Select a default model...</option>
         <optgroup label="DeepSeek">
@@ -285,17 +303,8 @@
           <option value="google/gemini-2.0-flash">Gemini 2.0 Flash</option>
         </optgroup>
       </select>
+      <div class="form-hint">All AI tasks (grading, code evaluation, notes, question generation) use this model unless overridden in <strong>Task routing</strong> below. Saved to Supabase — applies to all admins in your organisation.</div>
     </div>
-
-    <div style="display:flex;gap:8px;align-items:center;">
-      <button class="btn btn-sm" onclick="testOpenRouter()">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        Test Connection
-      </button>
-      <button class="btn btn-ghost btn-sm" onclick="clearOpenRouter()">Clear</button>
-    </div>
-
-    <div class="test-result" id="openrouterTestResult"></div>
   </div>
 
   <!-- ============ 03 · MODEL CONFIGURATION ============ -->
