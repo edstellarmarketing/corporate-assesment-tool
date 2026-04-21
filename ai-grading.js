@@ -34,7 +34,8 @@ async function _getAiConfig() {
     config[row.key] = val;
   });
 
-  const openrouterKey = config.openrouterKey || config.openrouter_key;
+  const openrouterKey = config.openrouterKey || config.openrouter_key
+    || (window.env && window.env.OPENROUTER_KEY) || '';
   if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
 
   const defaultModel = config.defaultModel || config.default_model || 'anthropic/claude-sonnet-4';
