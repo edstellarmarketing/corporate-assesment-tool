@@ -3,6 +3,7 @@
     { "source": "/", "destination": "/login.html", "permanent": false }
   ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/$1" }
   ],
   "headers": [

@@ -8,10 +8,9 @@
 
 const SETTINGS_KEY = 'edstellar_settings';
 
-// Default Supabase config — anon key is public, safe to hardcode
-const DEFAULT_SUPABASE_URL = 'https://supabasekong-dfpiopwrqgdf8iods10d4546.187.127.140.202.sslip.io';
-const DEFAULT_SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoiYW5vbiJ9.[REDACTED]';
-const DEFAULT_SUPABASE_SERVICE_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.[REDACTED]';
+const DEFAULT_SUPABASE_URL = window.env?.SUPABASE_URL || '';
+const DEFAULT_SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || '';
+const DEFAULT_SUPABASE_SERVICE_KEY = window.env?.SUPABASE_SERVICE_KEY || '';
 
 let _supabaseClient = null;
 let _currentUser = null;

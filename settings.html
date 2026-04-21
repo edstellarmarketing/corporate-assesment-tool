@@ -204,14 +204,14 @@
   <div class="settings-card">
     <div class="form-group">
       <label class="form-label">Project URL</label>
-      <input class="form-input mono-input" type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" value="https://supabasekong-dfpiopwrqgdf8iods10d4546.187.127.140.202.sslip.io">
+      <input class="form-input mono-input" type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co">
       <div class="form-hint">Found in Supabase Dashboard → Settings → API → Project URL</div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Anon / Public key</label>
       <div class="key-input-wrap">
-        <input class="form-input mono-input" type="password" id="supabaseAnonKey" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoiYW5vbiJ9.[REDACTED]">
+        <input class="form-input mono-input" type="password" id="supabaseAnonKey">
         <button class="key-toggle" onclick="toggleKeyVisibility('supabaseAnonKey', this)" title="Show/hide key">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -222,7 +222,7 @@
     <div class="form-group" style="margin-bottom:12px;">
       <label class="form-label">Service Role key (server-side only)</label>
       <div class="key-input-wrap">
-        <input class="form-input mono-input" type="password" id="supabaseServiceKey" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.[REDACTED]">
+        <input class="form-input mono-input" type="password" id="supabaseServiceKey">
         <button class="key-toggle" onclick="toggleKeyVisibility('supabaseServiceKey', this)" title="Show/hide key">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -253,7 +253,7 @@
     <div class="form-group">
       <label class="form-label">API key</label>
       <div class="key-input-wrap">
-        <input class="form-input mono-input" type="password" id="openrouterKey" placeholder="sk-or-v1-..." value="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">
+        <input class="form-input mono-input" type="password" id="openrouterKey" placeholder="sk-or-v1-...">
         <button class="key-toggle" onclick="toggleKeyVisibility('openrouterKey', this)" title="Show/hide key">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </button>
@@ -609,6 +609,7 @@
 <div class="corner-mark">Edstellar Platform · v3.2</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/api/env"></script>
 <script src="supabase-client.js"></script>
 <script>
   const STORAGE_KEY = 'edstellar_settings';
@@ -616,11 +617,15 @@
   // ============ LOAD SETTINGS ============
   function loadSettings() {
     try {
+      document.getElementById('supabaseUrl').value = window.env.SUPABASE_URL;
+      document.getElementById('supabaseAnonKey').value = window.env.SUPABASE_ANON_KEY;
+      document.getElementById('supabaseServiceKey').value = window.env.SUPABASE_SERVICE_KEY;
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
       if (saved.supabaseUrl) document.getElementById('supabaseUrl').value = saved.supabaseUrl;
       if (saved.supabaseAnonKey) document.getElementById('supabaseAnonKey').value = saved.supabaseAnonKey;
       if (saved.supabaseServiceKey) document.getElementById('supabaseServiceKey').value = saved.supabaseServiceKey;
       if (saved.openrouterKey) document.getElementById('openrouterKey').value = saved.openrouterKey;
+      else if (window.env?.OPENROUTER_KEY) document.getElementById('openrouterKey').value = window.env.OPENROUTER_KEY;
       if (saved.defaultModel) document.getElementById('defaultModel').value = saved.defaultModel;
       if (saved.routeGrading) document.getElementById('routeGrading').value = saved.routeGrading;
       if (saved.routeCode) document.getElementById('routeCode').value = saved.routeCode;
