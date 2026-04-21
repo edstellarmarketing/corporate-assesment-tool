@@ -11,14 +11,18 @@
  */
 
 let _aiConfigCache = null;
-// Clear cache on load so stale keys from a previous session are never reused.
-window.addEventListener('load', () => { _aiConfigCache = null; });
+// Expose so admin can manually clear from browser console: clearAiCache()
+window.clearAiCache = function() { _aiConfigCache = null; console.log('[ai-grading] cache cleared'); };
 
 /**
  * Fetch OpenRouter API key and model settings from v2-settings.
  */
 async function _getAiConfig() {
-  if (_aiConfigCache) return _aiConfigCache;
+  if (_aiConfigCache) {
+    const k = _aiConfigCache.apiKey || '';
+    console.log('[ai-grading] cached key (' + _aiConfigCache._keySource + '):', k.substring(0,12) + '...' + k.slice(-4));
+    return _aiConfigCache;
+  }
 
   const sb = getClient();
   if (!sb) throw new Error('Supabase client not configured');
@@ -40,21 +44,30 @@ async function _getAiConfig() {
   // Priority: Vercel env var (always reflects what admin set in Vercel dashboard)
   //        → Supabase v2-settings (per-org override)
   //        → localStorage (browser-saved settings)
-  const envKey  = ((window.env && window.env.OPENROUTER_KEY) || '').trim();
-  const dbKey   = ((config.openrouterKey || config.openrouter_key) || '').trim();
-  let   lsKey   = '';
+  const envKey = ((window.env && window.env.OPENROUTER_KEY) || '').trim();
+  const dbKey  = ((config.openrouterKey || config.openrouter_key) || '').trim();
+  let   lsKey  = '';
   try {
     const ls = JSON.parse(localStorage.getItem('edstellar_settings') || '{}');
     lsKey = (ls.openrouterKey || '').trim();
   } catch(e) {}
 
+  const keySource = envKey ? 'env' : dbKey ? 'supabase' : lsKey ? 'localStorage' : 'NONE';
   const openrouterKey = envKey || dbKey || lsKey;
-  console.log('[ai-grading] key source:', envKey ? 'env' : dbKey ? 'supabase' : lsKey ? 'localStorage' : 'NONE');
+
+  // Diagnostic — shows first 12 + last 4 chars so you can verify the key without exposing it fully
+  console.log('[ai-grading] key source:', keySource,
+    '| env:', envKey   ? envKey.substring(0,12)   + '...' + envKey.slice(-4)   : '(empty)',
+    '| db:',  dbKey    ? dbKey.substring(0,12)    + '...' + dbKey.slice(-4)    : '(empty)',
+    '| ls:',  lsKey    ? lsKey.substring(0,12)    + '...' + lsKey.slice(-4)    : '(empty)'
+  );
+
   if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
 
   const defaultModel = config.defaultModel || config.default_model || 'anthropic/claude-sonnet-4';
 
   _aiConfigCache = {
+    _keySource: keySource,
     apiKey: openrouterKey,
     defaultModel,
     routeGrading: config.routeGrading || config.route_grading || defaultModel,
