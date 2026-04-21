@@ -1018,7 +1018,8 @@
     });
     if (authError) {
       if (authError.message && authError.message.toLowerCase().includes('already registered')) {
-        // Auth user exists — check if they already have a profile
+        // Auth user exists in this Supabase instance (possibly from another schema like Marketing-PM-Tool)
+        // Check if they already have a v2-users profile in this org
         const { data: existingProfile } = await sb.from('v2-users').select('id').eq('email', email).maybeSingle();
         if (existingProfile) {
           errEl.textContent = 'An employee with this email already exists.';
@@ -1027,11 +1028,17 @@
           addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
           return;
         }
-        // Orphaned auth user — fetch their ID and create the missing profile
-        const { data: userList } = await adminSb.auth.admin.listUsers({ page: 1, perPage: 1000 });
-        const existing = userList?.users?.find(u => u.email === email);
+        // No profile yet — look up the existing auth user by email via the admin REST API
+        const { url: sbUrl } = _getConfig();
+        const saved = (() => { try { return JSON.parse(localStorage.getItem('edstellar_settings') || '{}'); } catch { return {}; } })();
+        const svcKey = saved.supabaseServiceKey || DEFAULT_SUPABASE_SERVICE_KEY;
+        const lookupRes = await fetch(`${sbUrl}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
+          headers: { 'apikey': svcKey, 'Authorization': 'Bearer ' + svcKey }
+        });
+        const lookupData = await lookupRes.json();
+        const existing = lookupData?.users?.[0];
         if (!existing) {
-          errEl.textContent = 'Auth error: ' + authError.message;
+          errEl.textContent = 'Could not find existing auth user for this email.';
           errEl.style.display = 'block';
           addEmpBtn.disabled = false;
           addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
