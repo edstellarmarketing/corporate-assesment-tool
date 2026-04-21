@@ -357,15 +357,34 @@
   // STEP 5 — INVITE
   // ============================================================
   function renderStep5() {
-    if (wiz.invites.length === 0) wiz.invites = [{ email: '', name: '' }];
     const isSingle = wiz.scope === 'individual';
+    const targetCount = isSingle ? 1 : (wiz.groupSize || 1);
+
+    // Initialise or resize the invites array to exactly targetCount rows
+    if (wiz.invites.length === 0) {
+      wiz.invites = Array.from({ length: targetCount }, () => ({ email: '', name: '' }));
+    } else if (wiz.invites.length < targetCount) {
+      while (wiz.invites.length < targetCount) wiz.invites.push({ email: '', name: '' });
+    } else if (wiz.invites.length > targetCount) {
+      wiz.invites.length = targetCount;
+    }
+
+    const filled  = wiz.invites.filter(i => i.email).length;
+    const counter = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;color:var(--ink-mute);">' +
+      filled + ' / ' + targetCount + ' filled</span>';
+
     return '<div>' +
-      '<h3 class="wiz-h">Invite participants</h3>' +
-      '<p class="wiz-sub">' + (isSingle ? 'Enter the email address of the person being assessed.' : 'Add all participants. Each receives a unique link and access code.') + '</p>' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">' +
+        '<h3 class="wiz-h" style="margin-bottom:0;">Invite participants</h3>' +
+        counter +
+      '</div>' +
+      '<p class="wiz-sub">' +
+        (isSingle
+          ? 'Enter the email address of the person being assessed.'
+          : targetCount + ' fields shown — one per participant you selected in Step 1.') +
+      '</p>' +
 
       '<div id="inviteRows">' + buildInviteRows() + '</div>' +
-
-      (!isSingle ? '<button class="btn btn-ghost btn-sm" onclick="wizAddInvite()" style="margin-top:8px;">+ Add another</button>' : '') +
 
       '<div style="margin-top:16px;padding:12px 14px;background:var(--edstellar-mist);border:1px solid #c5d5f5;font-size:12px;color:var(--edstellar);line-height:1.55;">' +
         '<strong>What happens next:</strong> Each participant gets an email with a unique assessment link and a 6-digit access code. The timer starts when they enter their code.' +
@@ -376,24 +395,24 @@
   function buildInviteRows() {
     return wiz.invites.map((inv, i) =>
       '<div class="wiz-invite-row" id="invRow_' + i + '">' +
+        '<span style="font-size:10px;font-weight:700;color:var(--ink-faint);min-width:22px;text-align:right;flex-shrink:0;">' + (i + 1) + '</span>' +
         '<input type="text" class="form-input" placeholder="Name (optional)" value="' + esc(inv.name) + '" oninput="wiz.invites[' + i + '].name=this.value" style="flex:0.7;">' +
-        '<input type="email" class="form-input" placeholder="email@company.com *" value="' + esc(inv.email) + '" oninput="wiz.invites[' + i + '].email=this.value" style="flex:1;">' +
-        (wiz.invites.length > 1
-          ? '<button onclick="wizRemoveInvite(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--ink-faint);padding:2px 8px;font-size:18px;line-height:1;" title="Remove">×</button>'
-          : '<span style="width:28px;display:inline-block;"></span>') +
+        '<input type="email" class="form-input" placeholder="email@company.com *" value="' + esc(inv.email) + '" oninput="wiz.invites[' + i + '].email=this.value;wizUpdateInviteCounter()" style="flex:1;">' +
       '</div>'
     ).join('');
   }
 
-  window.wizAddInvite = function () {
-    syncInviteRows();
-    wiz.invites.push({ email: '', name: '' });
-    document.getElementById('inviteRows').innerHTML = buildInviteRows();
-  };
-  window.wizRemoveInvite = function (i) {
-    syncInviteRows();
-    wiz.invites.splice(i, 1);
-    document.getElementById('inviteRows').innerHTML = buildInviteRows();
+  window.wizUpdateInviteCounter = function () {
+    const targetCount = wiz.scope === 'individual' ? 1 : (wiz.groupSize || 1);
+    const filled = wiz.invites.filter(i => i.email).length;
+    const counter = document.querySelector('#inviteRows + div + div span, #wizBody span[style*="JetBrains"]');
+    // Re-render only the counter text without touching the inputs
+    const allSpans = document.querySelectorAll('#wizBody span');
+    allSpans.forEach(s => {
+      if (s.textContent.includes('/ ' + targetCount + ' filled')) {
+        s.textContent = filled + ' / ' + targetCount + ' filled';
+      }
+    });
   };
 
   function syncInviteRows() {
