@@ -22,13 +22,28 @@ DROP POLICY IF EXISTS "aq_public_read" ON "v2-assessment-questions";
 CREATE POLICY "aq_public_read" ON "v2-assessment-questions"
   FOR SELECT TO anon, authenticated USING (true);
 
--- v2-assessments: anyone can read assessment metadata
--- (only needed for participant to see title/instructions)
+-- v2-assessments: enable RLS, give admins full access, participants can read
 ALTER TABLE "v2-assessments" ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "assessment_public_read" ON "v2-assessments";
+DROP POLICY IF EXISTS "assessment_public_read"  ON "v2-assessments";
+DROP POLICY IF EXISTS "assessment_admin_all"    ON "v2-assessments";
 
+-- Admins (authenticated users whose org matches) can do everything
+CREATE POLICY "assessment_admin_all" ON "v2-assessments"
+  FOR ALL TO authenticated
+  USING (
+    org_id IN (
+      SELECT org_id FROM "v2-users" WHERE id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    org_id IN (
+      SELECT org_id FROM "v2-users" WHERE id = auth.uid()
+    )
+  );
+
+-- Anon participants can read assessment metadata (title, instructions) via token flow
 CREATE POLICY "assessment_public_read" ON "v2-assessments"
-  FOR SELECT TO anon, authenticated USING (true);
+  FOR SELECT TO anon USING (true);
 
 -- v2-assessment-responses: participants can insert their own answers
 DROP POLICY IF EXISTS "ar_public_insert" ON "v2-assessment-responses";

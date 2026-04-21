@@ -775,7 +775,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  // Expose for debugging
-  window._wiz = wiz;
+  // Expose globally — inline oninput handlers in rendered HTML reference window.wiz
+  window.wiz = wiz;
 
 })();
