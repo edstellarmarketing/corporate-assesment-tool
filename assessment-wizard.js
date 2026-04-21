@@ -607,7 +607,7 @@
         passing_score: wiz.passingScore,
         time_limit_minutes: wiz.timeLimitMinutes,
         instructions: wiz.instructions,
-        status: 'active',
+        status: 'published',
         created_by: current?.profile?.id || null,
       })
       .select('id')
@@ -645,20 +645,22 @@
     const sb = getClient();
     const orgId = await getOrgId();
 
+    // Fallback chain: Supabase v2-settings → Vercel env var → hardcoded default
+    const HARDCODED_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzS2fUP8m6TMccSJZnMMRRbqvSuY0NZO5Dxy3_16SWl29wWXBrrqaVwPzF_AvZZCXRT/exec';
+
     const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
-    let webAppUrl = '';
+    let dbUrl = '';
     (settingsRows || []).forEach(row => {
       let val = row.value;
       if (typeof val === 'string') { try { val = JSON.parse(val); } catch (e) {} }
-      if (row.key === 'email_webapp_url') webAppUrl = val;
+      if (row.key === 'email_webapp_url') dbUrl = val;
     });
 
-    let emailSvc = null;
-    if (webAppUrl) {
-      emailSvc = new EmailService(webAppUrl);
-    } else {
-      showToast('Email service URL not set in Settings — invites saved but not emailed.', 'warn');
-    }
+    const webAppUrl = dbUrl
+      || (window.env && window.env.GOOGLE_WEBAPP_URL)
+      || HARDCODED_WEBAPP_URL;
+
+    const emailSvc = new EmailService(webAppUrl);
 
     const baseUrl = window.location.origin;
     const assessLink = baseUrl + '/Participant%20Live%20Assessment.html';
