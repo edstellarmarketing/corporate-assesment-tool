@@ -179,6 +179,42 @@
   .q-type-tag.scenario { color: var(--accent); background: var(--accent-soft); border-color: #e8c0a3; }
   .q-type-tag.coding { color: var(--ok); background: var(--ok-soft); border-color: #c5e0ce; }
 
+  /* ============ ASSESSMENT WIZARD ============ */
+  .wiz-h { font-family:'Fraunces',serif; font-size:18px; font-weight:500; color:var(--ink); margin-bottom:6px; }
+  .wiz-sub { font-size:12.5px; color:var(--ink-mute); margin-bottom:22px; line-height:1.5; }
+
+  .wiz-step-bar { display:flex; align-items:center; padding:2px 0; }
+  .wiz-step { display:flex; flex-direction:column; align-items:center; gap:4px; flex-shrink:0; }
+  .wiz-step-num { width:26px; height:26px; border-radius:50%; border:2px solid var(--rule); background:var(--paper); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:var(--ink-mute); }
+  .wiz-step.active .wiz-step-num { border-color:var(--ink); background:var(--ink); color:var(--paper); }
+  .wiz-step.done .wiz-step-num { border-color:var(--ok); background:var(--ok-soft); color:var(--ok); font-size:12px; }
+  .wiz-step-label { font-size:9px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-faint); font-weight:600; white-space:nowrap; }
+  .wiz-step.active .wiz-step-label { color:var(--ink); }
+  .wiz-step.done .wiz-step-label { color:var(--ok); }
+  .wiz-step-line { flex:1; height:2px; background:var(--rule); margin:0 6px 14px; min-width:12px; }
+  .wiz-step-line.done { background:var(--ok); }
+
+  .wiz-scope-card { border:2px solid var(--rule); padding:22px 18px; cursor:pointer; text-align:center; transition:border-color 0.15s, background 0.15s; background:var(--paper); user-select:none; }
+  .wiz-scope-card:hover { border-color:var(--ink-faint); background:var(--paper-warm); }
+  .wiz-scope-card.selected { border-color:var(--ink); background:var(--paper-warm); }
+
+  .wiz-q-type { border:2px solid var(--rule); padding:14px 8px; cursor:pointer; text-align:center; transition:border-color 0.15s, background 0.15s; background:var(--paper); user-select:none; }
+  .wiz-q-type:hover { border-color:var(--ink-faint); background:var(--paper-warm); }
+  .wiz-q-type.selected { border-color:var(--edstellar); background:var(--edstellar-mist); color:var(--edstellar); }
+
+  .wiz-q-dot { width:10px; height:10px; border-radius:50%; background:var(--rule); cursor:pointer; transition:background 0.15s; border:2px solid var(--rule); flex-shrink:0; }
+  .wiz-q-dot:hover { background:var(--ink-faint); border-color:var(--ink-faint); }
+  .wiz-q-dot.active { background:var(--ink); border-color:var(--ink); }
+  .wiz-q-dot.done { background:var(--ok); border-color:var(--ok); }
+
+  .wiz-invite-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+
+  /* ============ COMPLETION BANNER ============ */
+  .completion-banner { background:#fffbeb; border:1px solid #fcd34d; border-left:4px solid #f59e0b; padding:12px 18px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .completion-banner .cb-text { font-size:13px; color:#78350f; line-height:1.4; }
+  .completion-banner .cb-title { font-weight:600; }
+  .completion-banner .cb-actions { display:flex; gap:8px; flex-shrink:0; }
+
   /* ============ MOBILE RESPONSIVE MODALS ============ */
   @media (max-width: 768px) {
     .modal { width: 95vw !important; max-width: 95vw; max-height: 92vh; border: none; }
@@ -215,7 +251,7 @@
     <span class="brand-sub">Admin Dashboard</span>
   </div>
   <div class="topbar-actions">
-    <button class="top-btn primary" id="addAssessmentBtn">
+    <button class="top-btn primary" id="addAssessmentBtn" onclick="openAssessWizard()">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Assessment
     </button>
@@ -241,6 +277,9 @@
 
 <!-- ============ MAIN CONTENT ============ -->
 <div class="main">
+
+  <!-- ============ COMPLETION BANNERS ============ -->
+  <div id="completionBanners"></div>
 
   <!-- ============ STATS GRID ============ -->
   <div class="stats-grid">
@@ -451,7 +490,23 @@
   </div>
 </div>
 
-<!-- AI ASSESSMENT WIZARD REMOVED -->
+<!-- ============ ASSESSMENT WIZARD MODAL ============ -->
+<div class="modal-overlay" id="assessWizardModal">
+  <div class="modal" style="width:760px;max-height:92vh;display:flex;flex-direction:column;">
+    <div class="modal-header" style="flex-direction:column;gap:14px;align-items:stretch;padding:18px 24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="modal-title serif">New Assessment</span>
+        <button class="modal-close" onclick="closeAssessWizard()">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="wiz-step-bar" id="wizStepBar"></div>
+    </div>
+    <div class="modal-body" id="wizBody" style="padding:28px;flex:1;overflow-y:auto;min-height:260px;"></div>
+    <div class="modal-footer" id="wizFooter"></div>
+  </div>
+</div>
+
 <div class="corner-mark">Edstellar Platform · v3.2</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -460,6 +515,7 @@
 <script src="email-service.js"></script>
 <script src="seed-data.js"></script>
 <script src="ai-grading.js"></script>
+<script src="assessment-wizard.js"></script>
 <script src="edge-cases.js"></script>
 <script>
 (async function() {
@@ -754,6 +810,66 @@
     loadStats();
   });
 
+  // ============ COMPLETION BANNERS ============
+  async function loadCompletionBanners() {
+    const bannerWrap = document.getElementById('completionBanners');
+    if (!bannerWrap) return;
+
+    // Find active assessments with all invites submitted and banner not dismissed
+    const { data: assessments } = await sb
+      .from('v2-assessments')
+      .select('id, title, notification_dismissed, scope')
+      .eq('org_id', orgId)
+      .eq('status', 'active')
+      .eq('notification_dismissed', false);
+
+    if (!assessments || assessments.length === 0) { bannerWrap.innerHTML = ''; return; }
+
+    let banners = '';
+    for (const a of assessments) {
+      const { data: invites } = await sb
+        .from('v2-assessment-invites')
+        .select('id, status')
+        .eq('assessment_id', a.id);
+
+      if (!invites || invites.length === 0) continue;
+      const total = invites.length;
+      const submitted = invites.filter(i => i.status === 'submitted' || i.status === 'graded').length;
+      if (submitted === 0) continue;
+
+      const allDone = submitted === total;
+      banners += '<div class="completion-banner">' +
+        '<div class="cb-text">' +
+          (allDone ? '⚡' : '📊') + ' ' +
+          '<span class="cb-title">' + escStr(a.title) + '</span> — ' +
+          (allDone ? 'All ' + total + ' participant' + (total > 1 ? 's have' : ' has') + ' completed the assessment.'
+                   : submitted + ' of ' + total + ' participants have submitted.') +
+        '</div>' +
+        '<div class="cb-actions">' +
+          (allDone ? '<button class="btn btn-primary btn-sm" onclick="openGradeReport(\'' + a.id + '\')">Grade Now</button>' : '') +
+          '<button class="btn btn-ghost btn-sm" onclick="dismissBanner(\'' + a.id + '\', this)">Dismiss</button>' +
+        '</div>' +
+      '</div>';
+    }
+    bannerWrap.innerHTML = banners;
+  }
+
+  window.dismissBanner = async function (assessId, btn) {
+    await sb.from('v2-assessments').update({ notification_dismissed: true }).eq('id', assessId);
+    btn.closest('.completion-banner').remove();
+  };
+
+  window.openGradeReport = function (assessId) {
+    window.location.href = 'admin_assessment_report.html?id=' + assessId;
+  };
+
+  window.setupCompletionBanner = loadCompletionBanners;
+
+  function escStr(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   // ============ REALTIME SUBSCRIPTIONS ============
   function setupRealtime() {
     // Submissions live updates
@@ -776,6 +892,13 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'v2-assessments' }, () => {
         loadAssessments();
         loadStats();
+      })
+      .subscribe();
+
+    // Invite status changes — refresh completion banners live
+    sb.channel('assessment-invites')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'Corporate-Assessment-Tool', table: 'v2-assessment-invites' }, () => {
+        loadCompletionBanners();
       })
       .subscribe();
   }
@@ -1091,7 +1214,7 @@
   };
 
   // ============ INITIAL LOAD ============
-  await Promise.all([loadStats(), loadAssessments(), loadSubmissions(), loadActivity()]);
+  await Promise.all([loadStats(), loadAssessments(), loadSubmissions(), loadActivity(), loadCompletionBanners()]);
   setupRealtime();
   checkOverdueAssignments();
 })();
