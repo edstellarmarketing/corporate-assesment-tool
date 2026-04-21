@@ -905,6 +905,218 @@
   let sessionId = urlParams.get('session');
   const assignmentParam = urlParams.get('assignment');
 
+  // ============ NEW TOKEN FLOW (wizard invites via link_token) ============
+  const tokenParam = urlParams.get('token');
+  if (tokenParam) {
+    await handleTokenFlow(tokenParam, sb);
+    return;
+  }
+
+  async function handleTokenFlow(token, sb) {
+    // Load invite + assessment in one query
+    const { data: invite, error: invErr } = await sb
+      .from('v2-assessment-invites')
+      .select('id, otp, status, name, email, assessment_id')
+      .eq('link_token', token)
+      .single();
+
+    if (invErr || !invite) {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:inherit;"><div style="text-align:center;padding:40px;"><h2 style="font-family:\'Fraunces\',serif;font-size:20px;margin-bottom:8px;color:#0e1a2b;">Invalid Link</h2><p style="color:#888;font-size:13px;">This assessment link is invalid or has expired. Contact your administrator.</p></div></div>';
+      return;
+    }
+
+    if (invite.status === 'submitted' || invite.status === 'graded') {
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:inherit;"><div style="text-align:center;padding:40px;"><div style="font-size:48px;margin-bottom:16px;">✅</div><h2 style="font-family:\'Fraunces\',serif;font-size:20px;margin-bottom:8px;color:#0e1a2b;">Already Submitted</h2><p style="color:#888;font-size:13px;">You have already completed this assessment. Your results will be shared by your administrator.</p></div></div>';
+      return;
+    }
+
+    const { data: assessment } = await sb
+      .from('v2-assessments')
+      .select('id, title, instructions, time_limit_minutes, passing_score')
+      .eq('id', invite.assessment_id)
+      .single();
+
+    // Show OTP screen
+    const otpScreen = document.getElementById('otpScreen');
+    document.getElementById('otpAssessTitle').textContent = assessment?.title || 'Assessment';
+    if (invite.name) {
+      const sub = otpScreen.querySelector('p');
+      if (sub) sub.textContent = 'Hi ' + invite.name + ' — enter the 6-digit access code sent to your email';
+    }
+    otpScreen.style.display = 'flex';
+
+    // OTP digit wiring
+    const digits = document.querySelectorAll('.otp-digit');
+    digits.forEach((inp, i) => {
+      inp.addEventListener('input', () => {
+        inp.value = inp.value.replace(/[^0-9]/g, '');
+        if (inp.value && i < digits.length - 1) digits[i + 1].focus();
+      });
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !inp.value && i > 0) digits[i - 1].focus();
+      });
+      inp.addEventListener('paste', e => {
+        e.preventDefault();
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, j) => { if (digits[j]) digits[j].value = ch; });
+        if (digits[pasted.length - 1]) digits[pasted.length - 1].focus();
+      });
+    });
+
+    document.getElementById('otpVerifyBtn').addEventListener('click', async () => {
+      const entered = Array.from(digits).map(d => d.value).join('');
+      const errEl = document.getElementById('otpError');
+      if (entered.length !== 6) { errEl.textContent = 'Enter all 6 digits'; errEl.style.display = ''; return; }
+
+      if (entered !== invite.otp) {
+        errEl.textContent = 'Incorrect access code. Check your email and try again.';
+        errEl.style.display = '';
+        return;
+      }
+
+      errEl.style.display = 'none';
+      const btn = document.getElementById('otpVerifyBtn');
+      btn.disabled = true; btn.textContent = 'Starting...';
+
+      // Mark as started
+      await sb.from('v2-assessment-invites').update({
+        status: 'started',
+        started_at: new Date().toISOString()
+      }).eq('id', invite.id);
+
+      // Load questions
+      const { data: questions, error: qErr } = await sb
+        .from('v2-assessment-questions')
+        .select('*')
+        .eq('assessment_id', invite.assessment_id)
+        .order('order_index');
+
+      if (qErr || !questions || questions.length === 0) {
+        errEl.textContent = 'Could not load questions. Please refresh or contact admin.';
+        errEl.style.display = '';
+        btn.disabled = false; btn.textContent = 'Verify & Start Assessment';
+        return;
+      }
+
+      otpScreen.style.display = 'none';
+      renderTokenAssessment(invite, assessment, questions, sb);
+    });
+  }
+
+  function renderTokenAssessment(invite, assessment, questions, sb) {
+    const totalPts = questions.reduce((s, q) => s + (q.max_points || 10), 0);
+    const answers = {}; // question_id → answer text/choice
+
+    let currentIdx = 0;
+
+    // Build full-screen container
+    const wrap = document.createElement('div');
+    wrap.id = 'tokenAssessWrap';
+    wrap.style.cssText = 'position:fixed;inset:0;background:var(--paper);overflow-y:auto;font-family:inherit;z-index:100;';
+    document.body.appendChild(wrap);
+
+    function renderQ() {
+      const q = questions[currentIdx];
+      const isLast = currentIdx === questions.length - 1;
+      wrap.innerHTML =
+        // header
+        '<div style="background:var(--ink);color:#fff;padding:14px 28px;display:flex;justify-content:space-between;align-items:center;">' +
+          '<div style="font-family:\'Fraunces\',serif;font-size:15px;font-weight:500;">' + esc(assessment?.title || 'Assessment') + '</div>' +
+          '<div style="font-size:11px;color:#aaa;font-family:\'JetBrains Mono\',monospace;">Q ' + (currentIdx + 1) + ' / ' + questions.length + '</div>' +
+        '</div>' +
+        // progress bar
+        '<div style="height:3px;background:var(--rule);"><div style="height:3px;background:var(--edstellar);width:' + Math.round((currentIdx / questions.length) * 100) + '%;transition:width 0.3s;"></div></div>' +
+        // body
+        '<div style="max-width:720px;margin:0 auto;padding:40px 28px;">' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-faint);font-weight:600;margin-bottom:10px;">' +
+            typeLabel(q.type) + ' · ' + (q.max_points || 10) + ' points' +
+          '</div>' +
+          '<div style="font-size:17px;color:var(--ink);line-height:1.6;margin-bottom:28px;font-weight:500;">' + esc(q.prompt) + '</div>' +
+          answerWidget(q, currentIdx) +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">' +
+            (currentIdx > 0 ? '<button onclick="tokenPrev()" class="btn btn-ghost btn-sm">← Previous</button>' : '<span></span>') +
+            '<button onclick="tokenNext(' + isLast + ')" class="btn btn-primary btn-sm" id="tokenNextBtn">' +
+              (isLast ? 'Submit Assessment' : 'Next →') +
+            '</button>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function typeLabel(t) {
+      return t === 'mcq' ? 'Multiple Choice' : t === 'code' ? 'Code' : t === 'long_text_attachment' ? 'Long Answer' : 'Short Answer';
+    }
+
+    function answerWidget(q, idx) {
+      const saved = answers[q.id] || '';
+      if (q.type === 'mcq') {
+        const opts = Array.isArray(q.options) ? q.options : [];
+        return '<div id="answerArea">' +
+          opts.map((o, oi) => {
+            const txt = typeof o === 'object' ? (o.text || o.label || '') : o;
+            const checked = saved === txt;
+            return '<label style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:2px solid ' + (checked ? 'var(--edstellar)' : 'var(--rule)') + ';background:' + (checked ? 'var(--edstellar-mist)' : 'var(--paper)') + ';margin-bottom:8px;cursor:pointer;">' +
+              '<input type="radio" name="mcqAns" value="' + esc(txt) + '"' + (checked ? ' checked' : '') + ' style="width:16px;height:16px;flex-shrink:0;" onchange="tokenSaveMcq(\'' + q.id + '\',this.value)">' +
+              '<span style="font-size:13px;color:var(--ink);">' + esc(txt) + '</span>' +
+            '</label>';
+          }).join('') +
+        '</div>';
+      }
+      if (q.type === 'code') {
+        return '<textarea id="answerArea" rows="8" placeholder="Write your code here..." style="width:100%;padding:14px;font-family:\'JetBrains Mono\',monospace;font-size:12.5px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);">' + esc(saved) + '</textarea>';
+      }
+      const rows = q.type === 'long_text_attachment' ? 6 : 3;
+      return '<textarea id="answerArea" rows="' + rows + '" placeholder="Type your answer here..." style="width:100%;padding:14px;font-family:inherit;font-size:13px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);line-height:1.6;">' + esc(saved) + '</textarea>';
+    }
+
+    function saveCurrentAnswer() {
+      const q = questions[currentIdx];
+      if (q.type === 'mcq') return; // saved by onchange
+      const el = document.getElementById('answerArea');
+      if (el) answers[q.id] = el.value;
+    }
+
+    window.tokenSaveMcq = function(qid, val) { answers[qid] = val; };
+    window.tokenPrev = function() { saveCurrentAnswer(); currentIdx--; renderQ(); };
+    window.tokenNext = async function(isLast) {
+      saveCurrentAnswer();
+      if (isLast) {
+        const btn = document.getElementById('tokenNextBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+        // Save all responses
+        const rows = questions.map(q => ({
+          invite_id: invite.id,
+          assessment_id: invite.assessment_id,
+          question_id: q.id,
+          answer_text: q.type !== 'mcq' ? (answers[q.id] || '') : null,
+          answer_choice: q.type === 'mcq' ? (answers[q.id] || null) : null,
+        }));
+        await sb.from('v2-assessment-responses').insert(rows);
+        await sb.from('v2-assessment-invites').update({
+          status: 'submitted',
+          submitted_at: new Date().toISOString()
+        }).eq('id', invite.id);
+        // Thank you screen
+        wrap.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;">' +
+          '<div style="text-align:center;max-width:400px;padding:40px;">' +
+            '<div style="font-size:52px;margin-bottom:20px;">✅</div>' +
+            '<h2 style="font-family:\'Fraunces\',serif;font-size:22px;font-weight:500;color:var(--ink);margin-bottom:10px;">Submitted!</h2>' +
+            '<p style="font-size:13px;color:var(--ink-mute);line-height:1.6;">Thank you ' + esc(invite.name || '') + '. Your responses have been recorded. Your administrator will review and share results with you.</p>' +
+          '</div>' +
+        '</div>';
+        return;
+      }
+      currentIdx++;
+      renderQ();
+    };
+
+    renderQ();
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   // ============ OTP FLOW (no login required) ============
   if (assignmentParam && !sessionId) {
     // Load assignment info using anon key (no auth needed)

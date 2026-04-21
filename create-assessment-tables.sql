@@ -138,4 +138,4 @@ CREATE POLICY "ares_admin_all" ON "v2-assessment-results"
     )
   );
 
-RAISE NOTICE 'Assessment wizard tables created successfully.';
+DO $$ BEGIN RAISE NOTICE 'Assessment wizard tables created successfully.'; END $$;
