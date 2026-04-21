@@ -11,6 +11,8 @@
  */
 
 let _aiConfigCache = null;
+// Clear cache on load so stale keys from a previous session are never reused.
+window.addEventListener('load', () => { _aiConfigCache = null; });
 
 /**
  * Fetch OpenRouter API key and model settings from v2-settings.
@@ -34,15 +36,20 @@ async function _getAiConfig() {
     config[row.key] = val;
   });
 
-  // Fallback chain: Supabase settings → localStorage → Vercel env var
-  let localKey = '';
+  // Collect every possible key source and pick the first non-empty one.
+  // Priority: Vercel env var (always reflects what admin set in Vercel dashboard)
+  //        → Supabase v2-settings (per-org override)
+  //        → localStorage (browser-saved settings)
+  const envKey  = ((window.env && window.env.OPENROUTER_KEY) || '').trim();
+  const dbKey   = ((config.openrouterKey || config.openrouter_key) || '').trim();
+  let   lsKey   = '';
   try {
     const ls = JSON.parse(localStorage.getItem('edstellar_settings') || '{}');
-    localKey = ls.openrouterKey || '';
+    lsKey = (ls.openrouterKey || '').trim();
   } catch(e) {}
-  const openrouterKey = config.openrouterKey || config.openrouter_key
-    || localKey
-    || (window.env && window.env.OPENROUTER_KEY) || '';
+
+  const openrouterKey = envKey || dbKey || lsKey;
+  console.log('[ai-grading] key source:', envKey ? 'env' : dbKey ? 'supabase' : lsKey ? 'localStorage' : 'NONE');
   if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
 
   const defaultModel = config.defaultModel || config.default_model || 'anthropic/claude-sonnet-4';
