@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Assessment — AI Foundations for Emaar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b;
+    --ink-soft: #2a3a52;
+    --ink-mute: #5a6a82;
+    --ink-faint: #95a0b3;
+    --paper: #fbfaf7;
+    --paper-warm: #f5f2ea;
+    --rule: #e6e1d3;
+    --rule-soft: #efece1;
+    --edstellar: #1d4ed8;
+    --edstellar-deep: #0a2472;
+    --edstellar-mist: #e8eeff;
+    --accent: #c8410b;
+    --accent-soft: #fdeee0;
+    --ok: #1f6f43;
+    --ok-soft: #e3f1e7;
+    --warn: #8a5a00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(14, 26, 43, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+    min-height: 100vh;
+  }
+
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #000;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-logo-wrap {
+    background: var(--paper);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .brand-logo {
+    height: 22px;
+    width: auto;
+    display: block;
+  }
+  .brand-divider {
+    width: 1px;
+    height: 22px;
+    background: rgba(255, 255, 255, 0.18);
+    flex-shrink: 0;
+  }
+  .brand-sub {
+    font-size: 10.5px;
+    color: #8a96ab;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+  }
+
+  .topbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 12.5px;
+  }
+
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .meta-item .label {
+    color: #8a96ab;
+    text-transform: uppercase;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    margin-bottom: 3px;
+  }
+  .meta-item .value {
+    color: var(--paper);
+    font-weight: 500;
+  }
+
+  .timer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 5px 14px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .timer-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    animation: pulse 2.4s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6); }
+    50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+  }
+  .timer-display {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+  .timer-label {
+    font-size: 9.5px;
+    color: #8a96ab;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ============ SECTION STRIP ============ */
+  .section-strip {
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+  }
+
+  .section-tab {
+    padding: 9px 22px;
+    font-size: 12px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    transition: color 0.15s;
+    margin-bottom: -1px;
+  }
+  .section-tab:hover { color: var(--ink); }
+  .section-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    background: var(--paper);
+  }
+  .section-tab .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    background: rgba(14, 26, 43, 0.05);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .section-tab.active .num {
+    background: var(--accent);
+    color: white;
+  }
+  .section-tab.complete .num {
+    background: var(--ok);
+    color: white;
+  }
+
+  /* ============ MAIN LAYOUT ============ */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    min-height: calc(100vh - 110px);
+  }
+
+  .content {
+    padding: 26px 56px 32px;
+    max-width: 880px;
+    border-right: 1px solid var(--rule);
+  }
+
+  /* ============ QUESTION HEADER ============ */
+  .question-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    margin-bottom: 4px;
+  }
+  .question-meta .qnum {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 0.9;
+    font-feature-settings: 'lnum';
+  }
+  .question-meta .qmeta {
+    flex: 1;
+    border-left: 1px solid var(--rule);
+    padding-left: 18px;
+    padding-top: 4px;
+  }
+  .qmeta .qtype {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .qmeta .qpts {
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+  .qmeta .qpts strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .qprompt {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 18px 0 6px;
+    letter-spacing: -0.012em;
+  }
+
+  .qcontext {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 20px;
+    max-width: 68ch;
+  }
+
+  .scenario-card {
+    background: var(--paper-warm);
+    border-left: 3px solid var(--ink);
+    padding: 22px 26px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+  .scenario-card::before {
+    content: 'Scenario';
+    position: absolute;
+    top: -9px;
+    left: 22px;
+    background: var(--paper);
+    padding: 0 8px;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    font-weight: 600;
+  }
+  .scenario-card p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink-soft);
+  }
+  .scenario-card p + p { margin-top: 12px; }
+
+  /* ============ MCQ OPTIONS ============ */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 18px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    position: relative;
+  }
+  .option:hover {
+    border-color: var(--ink-faint);
+    background: #fdfcf9;
+  }
+  .option.selected {
+    border-color: var(--ink);
+    background: var(--paper);
+    box-shadow: -3px 3px 0 0 var(--ink);
+    transform: translate(1px, -1px);
+  }
+  .option.selected::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--ink);
+    pointer-events: none;
+  }
+
+  .option-key {
+    width: 22px;
+    height: 22px;
+    border: 1px solid var(--ink-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    flex-shrink: 0;
+    background: var(--paper);
+    transition: all 0.12s;
+  }
+  .option.selected .option-key {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .option-text {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink);
+    padding-top: 1px;
+  }
+
+  /* ============ PROMPT/CODE EDITOR ============ */
+  .editor-wrap {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    margin-bottom: 18px;
+  }
+  .editor-bar {
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--rule);
+    padding: 9px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .editor-bar .label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    font-size: 10px;
+  }
+  .editor-bar .stats {
+    color: var(--ink-faint);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+  }
+  .editor {
+    padding: 20px 22px;
+    min-height: 220px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--ink);
+    outline: none;
+    white-space: pre-wrap;
+  }
+  .editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+
+  .code-editor {
+    display: flex;
+    background: #fafaf6;
+  }
+  .gutter {
+    background: var(--paper-warm);
+    border-right: 1px solid var(--rule);
+    padding: 20px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    line-height: 1.7;
+    text-align: right;
+    user-select: none;
+    min-width: 44px;
+  }
+  .code-area {
+    flex: 1;
+    padding: 20px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    outline: none;
+    white-space: pre;
+    overflow-x: auto;
+    color: var(--ink);
+  }
+  .code-area .kw { color: #8b4513; font-weight: 500; }
+  .code-area .str { color: #1f6f43; }
+  .code-area .com { color: var(--ink-faint); font-style: italic; }
+  .code-area .fn { color: var(--edstellar-deep); }
+
+  .editor-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .editor-tools button {
+    background: transparent;
+    border: 1px solid var(--rule);
+    padding: 4px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .editor-tools button:hover {
+    border-color: var(--ink-faint);
+    color: var(--ink);
+  }
+
+  .rubric-hint {
+    display: flex;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--edstellar-mist);
+    border: 1px solid #d4dfff;
+    margin-bottom: 32px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .rubric-hint .icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--edstellar);
+  }
+  .rubric-hint strong {
+    color: var(--edstellar-deep);
+    font-weight: 600;
+  }
+
+  /* ============ NAV BUTTONS ============ */
+  .nav-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+  }
+  .btn {
+    padding: 9px 22px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.12s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+  .btn-ghost {
+    border-color: var(--rule);
+    color: var(--ink-mute);
+  }
+  .btn-ghost:hover {
+    background: var(--paper-warm);
+    color: var(--ink);
+    border-color: var(--ink-faint);
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar {
+    background: var(--paper);
+    padding: 22px 24px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .side-section { margin-bottom: 22px; }
+  .side-section:last-child { margin-bottom: 0; }
+
+  .side-title {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .side-title .count {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-faint);
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .qgrid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+  }
+  .qcell {
+    aspect-ratio: 1;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.12s;
+    position: relative;
+  }
+  .qcell:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .qcell.answered {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .qcell.flagged::after {
+    content: '';
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 5px;
+    height: 5px;
+    background: var(--accent);
+  }
+  .qcell.current {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent);
+  }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .legend-swatch {
+    width: 11px;
+    height: 11px;
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+  .legend-swatch.answered { background: var(--ink); border-color: var(--ink); }
+  .legend-swatch.current { background: var(--accent); border-color: var(--accent); }
+  .legend-swatch.flagged { background: var(--paper); position: relative; }
+  .legend-swatch.flagged::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+  }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--rule-soft);
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--ink);
+    width: 38%;
+    transform-origin: left;
+  }
+  .progress-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+  }
+
+  .integrity-card {
+    border: 1px solid var(--rule);
+    padding: 14px 16px;
+    background: var(--paper-warm);
+  }
+  .integrity-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    padding: 6px 0;
+  }
+  .integrity-row .label { color: var(--ink-mute); }
+  .integrity-row .val {
+    color: var(--ok);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .integrity-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+
+  .flag-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--rule);
+    padding: 11px;
+    font-family: inherit;
+    font-size: 11.5px;
+    color: var(--ink-mute);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .flag-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    border-style: solid;
+  }
+
+  /* ============ DECORATIVE ============ */
+  .corner-mark {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    pointer-events: none;
+  }
+
+  .ref-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+
+  /* Hide one section by default to show MCQ first */
+  .qview { display: none; }
+  .qview.active { display: block; }
+
+  @media (max-width: 1100px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { position: static; max-height: none; border-top: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap">
+      <img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;">
+    </div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Assessment Console</span>
+  </div>
+
+  <div class="topbar-meta">
+    <div class="meta-item">
+      <span class="label">Programme</span>
+      <span class="value">AI Foundations · Emaar</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Candidate</span>
+      <span class="value">A. Khoury · ID 4421</span>
+    </div>
+    <div class="meta-item">
+      <span class="label">Attempt</span>
+      <span class="value">Final · 01 of 01</span>
+    </div>
+    <div class="timer">
+      <div class="timer-pulse"></div>
+      <div>
+        <div class="timer-label">Time left</div>
+        <div class="timer-display" id="timer">01:24:36</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ SECTION TABS (populated by JS) ============ -->
+<nav class="section-strip"></nav>
+
+<!-- ============ MAIN ============ -->
+<main class="main">
+  <article class="content">
+    <div style="padding:60px 40px;text-align:center;color:var(--ink-faint);font-size:13px;">Loading assessment...</div>
+  </article>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+
+    <div class="side-section">
+      <div class="side-title">
+        <span>Section progress</span>
+        <span class="count">14 / 36</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+      <div class="progress-text">
+        <span>Answered</span>
+        <span>38%</span>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <div class="side-title">
+        <span>Question map</span>
+        <span class="count">Section 02</span>
+      </div>
+      <div class="qgrid" id="qgrid"></div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-swatch answered"></span> Answered</div>
+        <div class="legend-item"><span class="legend-swatch current"></span> Current</div>
+        <div class="legend-item"><span class="legend-swatch flagged"></span> Flagged for review</div>
+        <div class="legend-item"><span class="legend-swatch"></span> Unanswered</div>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <button class="flag-btn">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+          <path d="M3 14 L3 2 L13 2 L10 6 L13 10 L3 10" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+        </svg>
+        Flag this question
+      </button>
+    </div>
+
+    <div class="side-section">
+      <div class="side-title">Session integrity</div>
+      <div class="integrity-card">
+        <div class="integrity-row">
+          <span class="label">Tab focus</span>
+          <span class="val"><span class="integrity-dot"></span>Stable</span>
+        </div>
+        <div class="integrity-row">
+          <span class="label">Network</span>
+          <span class="val"><span class="integrity-dot"></span>Connected</span>
+        </div>
+        <div class="integrity-row">
+          <span class="label">Auto-save</span>
+          <span class="val"><span class="integrity-dot"></span>00:14 ago</span>
+        </div>
+        <div class="integrity-row">
+          <span class="label">Proctoring</span>
+          <span class="val"><span class="integrity-dot"></span>Active</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<!-- ============ OTP VERIFICATION SCREEN ============ -->
+<div id="otpScreen" style="display:none;position:fixed;inset:0;z-index:200;background:#f8f7f4;align-items:center;justify-content:center;">
+  <div style="background:#fff;border:1px solid #e5e2db;width:420px;max-width:95vw;padding:40px;text-align:center;">
+    <div style="width:48px;height:48px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <svg width="22" height="22" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <h2 style="font-family:'Fraunces',serif;font-size:20px;font-weight:500;color:#0e1a2b;margin:0 0 6px;" id="otpAssessTitle">Assessment</h2>
+    <p style="font-size:13px;color:#888;margin:0 0 24px;">Enter the 6-digit access code sent to your email</p>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;" id="otpInputs">
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;" autofocus>
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;">
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;">
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;">
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;">
+      <input type="text" maxlength="1" class="otp-digit" style="width:44px;height:52px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;border:2px solid #e5e2db;background:#f8f7f4;outline:none;color:#0e1a2b;">
+    </div>
+    <div id="otpError" style="font-size:12px;color:#dc2626;margin-bottom:12px;display:none;"></div>
+    <button id="otpVerifyBtn" style="width:100%;padding:14px;background:#0e1a2b;color:#fff;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.04em;">
+      Verify & Start Assessment
+    </button>
+    <p style="font-size:11px;color:#aaa;margin-top:16px;">The timer will begin once you verify the code</p>
+  </div>
+</div>
+
+<!-- ============ THANK YOU SCREEN ============ -->
+<div id="thankYouScreen" style="display:none;position:fixed;inset:0;z-index:200;background:#f8f7f4;align-items:center;justify-content:center;">
+  <div style="background:#fff;border:1px solid #e5e2db;width:480px;max-width:95vw;padding:48px;text-align:center;">
+    <div style="width:64px;height:64px;background:#f0fdf4;border:2px solid #c5e0ce;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;border-radius:50%;">
+      <svg width="28" height="28" fill="none" stroke="#16a34a" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 style="font-family:'Fraunces',serif;font-size:24px;font-weight:500;color:#0e1a2b;margin:0 0 8px;">Assessment Submitted</h2>
+    <p style="font-size:14px;color:#666;line-height:1.6;margin:0 0 24px;">
+      Thank you for completing the assessment. Your responses have been recorded successfully.<br>
+      You will receive your results via email once they have been reviewed.
+    </p>
+    <div style="background:#f8f7f4;border:1px solid #e5e2db;padding:16px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;">
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#888;">Questions</div><div style="font-size:18px;font-weight:700;color:#0e1a2b;" id="tyQuestionCount">--</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#888;">Answered</div><div style="font-size:18px;font-weight:700;color:#0e1a2b;" id="tyAnsweredCount">--</div></div>
+        <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#888;">Flagged</div><div style="font-size:18px;font-weight:700;color:#0e1a2b;" id="tyFlaggedCount">--</div></div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#aaa;">You may close this window now.</p>
+  </div>
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+(async function() {
+  'use strict';
+
+  const sb = getClient();
+  const urlParams = new URLSearchParams(window.location.search);
+  let sessionId = urlParams.get('session');
+  const assignmentParam = urlParams.get('assignment');
+
+  // ============ OTP FLOW (no login required) ============
+  if (assignmentParam && !sessionId) {
+    // Load assignment info using anon key (no auth needed)
+    const { data: assignInfo } = await sb.from('v2-assignments')
+      .select('*, "v2-assessments"(title, duration_minutes)')
+      .eq('id', assignmentParam).single();
+
+    if (!assignInfo) {
+      showToast('Invalid assignment link.', 'error');
+      return;
+    }
+
+    // Hide all page content — only show OTP screen
+    document.querySelector('header.topbar').style.display = 'none';
+    const navEl = document.querySelector('nav.section-strip');
+    if (navEl) navEl.style.display = 'none';
+    document.querySelector('main.main').style.display = 'none';
+
+    const otpScreen = document.getElementById('otpScreen');
+    otpScreen.style.display = 'flex';
+    document.getElementById('otpAssessTitle').textContent = assignInfo['v2-assessments']?.title || 'Assessment';
+
+    // OTP digit input auto-advance
+    const digits = document.querySelectorAll('.otp-digit');
+    digits.forEach((inp, i) => {
+      inp.addEventListener('input', () => {
+        inp.value = inp.value.replace(/[^0-9]/g, '');
+        if (inp.value && i < digits.length - 1) digits[i + 1].focus();
+      });
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !inp.value && i > 0) digits[i - 1].focus();
+      });
+      inp.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((ch, j) => { if (digits[j]) digits[j].value = ch; });
+        if (digits[pasted.length - 1]) digits[pasted.length - 1].focus();
+      });
+    });
+
+    // Verify OTP on button click
+    document.getElementById('otpVerifyBtn').addEventListener('click', async () => {
+      const otpCode = Array.from(digits).map(d => d.value).join('');
+      if (otpCode.length !== 6) {
+        document.getElementById('otpError').textContent = 'Please enter all 6 digits';
+        document.getElementById('otpError').style.display = '';
+        return;
+      }
+
+      const btn = document.getElementById('otpVerifyBtn');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+
+      // Check OTP
+      const { data: otpRecord, error: otpErr } = await sb.from('v2-assessment-otp')
+        .select('*')
+        .eq('assignment_id', assignmentParam)
+        .eq('otp_code', otpCode)
+        .eq('verified', false)
+        .single();
+
+      if (otpErr || !otpRecord) {
+        document.getElementById('otpError').textContent = 'Invalid or expired access code. Please check and try again.';
+        document.getElementById('otpError').style.display = '';
+        btn.disabled = false;
+        btn.textContent = 'Verify & Start Assessment';
+        return;
+      }
+
+      // Check expiry
+      if (new Date(otpRecord.expires_at) < new Date()) {
+        document.getElementById('otpError').textContent = 'This access code has expired. Please contact your admin.';
+        document.getElementById('otpError').style.display = '';
+        btn.disabled = false;
+        btn.textContent = 'Verify & Start Assessment';
+        return;
+      }
+
+      // Mark OTP as verified
+      await sb.from('v2-assessment-otp').update({
+        verified: true,
+        verified_at: new Date().toISOString()
+      }).eq('id', otpRecord.id);
+
+      // Sign in the participant using their Supabase auth credentials
+      // First get the user's email from the OTP record
+      const { data: otpUser } = await sb.from('v2-users').select('id, email, org_id').eq('id', otpRecord.user_id).single();
+      if (!otpUser) {
+        document.getElementById('otpError').textContent = 'User account not found. Please contact your admin.';
+        document.getElementById('otpError').style.display = '';
+        btn.disabled = false;
+        btn.textContent = 'Verify & Start Assessment';
+        return;
+      }
+
+      // Create session directly using the user and assessment info from OTP
+      btn.textContent = 'Starting assessment...';
+      const { data: newSession, error: sessCreateErr } = await sb.from('v2-sessions').insert({
+        user_id: otpRecord.user_id,
+        assessment_id: otpRecord.assessment_id,
+        assignment_id: assignmentParam,
+        status: 'active',
+        started_at: new Date().toISOString()
+      }).select().single();
+
+      if (sessCreateErr || !newSession) {
+        document.getElementById('otpError').textContent = 'Could not start session: ' + (sessCreateErr?.message || 'Unknown error');
+        document.getElementById('otpError').style.display = '';
+        btn.disabled = false;
+        btn.textContent = 'Verify & Start Assessment';
+        return;
+      }
+
+      // Update assignment status
+      await sb.from('v2-assignments').update({ status: 'in_progress' }).eq('id', assignmentParam);
+
+      // Hide OTP screen and restore page content
+      otpScreen.style.display = 'none';
+      document.querySelector('header.topbar').style.display = '';
+      const navRestore = document.querySelector('nav.section-strip');
+      if (navRestore) navRestore.style.display = '';
+      document.querySelector('main.main').style.display = '';
+      sessionId = newSession.id;
+
+      // Update URL without reload
+      window.history.replaceState({}, '', '?session=' + sessionId);
+
+      // Load assessment with OTP-derived user context
+      await loadAndStartAssessment(otpRecord.user_id, otpUser.org_id);
+    });
+
+    return; // Stop here — assessment loading happens after OTP verification
+  }
+
+  // ============ DIRECT SESSION ACCESS (requires login) ============
+  await requireAuth();
+  const currentUser = await getCurrentUser();
+  const userId = currentUser?.profile?.id;
+  const orgId = currentUser?.profile?.org_id;
+
+  if (!userId || !orgId) {
+    showToast('Unable to load user profile.', 'error');
+    return;
+  }
+
+  if (!sessionId) {
+    showToast('No session ID provided. Redirecting...', 'error');
+    setTimeout(() => { window.location.href = 'employee_dashboard.html'; }, 1500);
+    return;
+  }
+
+  // Direct session access (from employee dashboard)
+  await loadAndStartAssessment(userId, orgId);
+
+  async function loadAndStartAssessment(activeUserId, activeOrgId) {
+
+  // ============ STATE ============
+  let assessId = null;
+  let assessmentConfig = {};       // duration, negative_marking, proctoring
+  let sections = [];
+  let questions = [];              // full question list with options
+  let totalQuestions = 0;
+  const responses = {};            // { questionId: { mcq_selected, essay_text, code_text, word_count } }
+  const flaggedSet = new Set();
+  const answeredSet = new Set();
+  let currentQuestion = 1;
+  let lastSaveTime = Date.now();
+  let tabFocusLosses = 0;
+  let totalSec = 0;                // timer — loaded from session
+  const autoSaveInterval = 30;     // seconds
+  let autoSaveTimer = null;
+  let timerInterval = null;
+
+  // ============ LOAD SESSION ============
+  const { data: session, error: sessErr } = await sb
+    .from('v2-sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .single();
+
+  if (sessErr || !session) {
+    console.error('Session load error:', sessErr);
+    showToast('Session not found or access denied.', 'error');
+    return;
+  }
+
+  assessId = session.assessment_id;
+  totalSec = session.time_remaining_sec || 0;
+  const attemptNumber = session.attempt_number || 1;
+
+  // ============ LOAD ASSESSMENT CONFIG ============
+  const { data: assessCfg, error: cfgErr } = await sb
+    .from('v2-assessments')
+    .select('*')
+    .eq('id', assessId)
+    .single();
+
+  console.log('[Assessment] Session loaded:', session.id, 'assessment_id:', session.assessment_id);
+  if (cfgErr || !assessCfg) {
+    console.error('Assessment config error:', cfgErr);
+    showToast('Could not load assessment configuration.', 'error');
+    return;
+  }
+  assessmentConfig = assessCfg;
+  console.log('[Assessment] Config loaded:', assessCfg.title, 'duration:', assessCfg.duration_minutes);
+
+  // If timer was not persisted yet, initialise from assessment duration
+  if (!totalSec) {
+    const durationMin = assessmentConfig.duration_minutes || assessmentConfig.duration || 60;
+    totalSec = durationMin * 60;
+  }
+
+  // ============ LOAD SECTIONS ============
+  const { data: secs } = await sb
+    .from('v2-assessment-sections')
+    .select('*')
+    .eq('assessment_id', assessId)
+    .order('sort_order');
+
+  sections = secs || [];
+
+  // ============ LOAD QUESTIONS ============
+  const { data: qs, error: qErr } = await sb
+    .from('v2-questions')
+    .select('*, "v2-mcq-options"(*)')
+    .eq('assessment_id', assessId)
+    .order('sort_order');
+
+  console.log('[Assessment] Sections:', (secs || []).length, 'Questions query result:', qs?.length || 0, 'error:', qErr);
+  if (qErr || !qs || qs.length === 0) {
+    console.error('Questions load error:', qErr);
+    showToast('No questions found for this assessment.', 'error');
+    return;
+  }
+  questions = qs;
+  totalQuestions = questions.length;
+  console.log('[Assessment] Loaded', totalQuestions, 'questions');
+
+  // Fallback: if nested mcq-options select returned empty, fetch them directly
+  const mcqQs = questions.filter(q => q.question_type === 'mcq' && (!q['v2-mcq-options'] || q['v2-mcq-options'].length === 0));
+  if (mcqQs.length > 0) {
+    const mcqIds = mcqQs.map(q => q.id);
+    const { data: allOpts } = await sb.from('v2-mcq-options').select('*').in('question_id', mcqIds).order('sort_order');
+    if (allOpts && allOpts.length > 0) {
+      const optsByQ = {};
+      allOpts.forEach(o => { if (!optsByQ[o.question_id]) optsByQ[o.question_id] = []; optsByQ[o.question_id].push(o); });
+      mcqQs.forEach(q => { q['v2-mcq-options'] = optsByQ[q.id] || []; });
+    }
+  }
+
+  // ============ LOAD EXISTING RESPONSES (resume) ============
+  const { data: existingResponses } = await sb
+    .from('v2-responses')
+    .select('*')
+    .eq('session_id', sessionId);
+
+  if (existingResponses) {
+    existingResponses.forEach(r => {
+      responses[r.question_id] = {
+        id: r.id,
+        mcq_selected: r.mcq_selected,
+        essay_text: r.essay_text,
+        code_text: r.code_text,
+        word_count: r.word_count,
+        is_flagged: r.is_flagged
+      };
+      if (r.mcq_selected || r.essay_text || r.code_text) {
+        answeredSet.add(r.question_id);
+      }
+      if (r.is_flagged) {
+        flaggedSet.add(r.question_id);
+      }
+    });
+  }
+
+  // ============ POPULATE PAGE HEADER ============
+  document.title = 'Edstellar Assessment — ' + (assessmentConfig.title || 'Live Assessment');
+  const programmeEl = document.querySelector('.topbar-meta .meta-item:nth-child(1) .value');
+  if (programmeEl) programmeEl.textContent = assessmentConfig.title || 'Assessment';
+  const candidateEl = document.querySelector('.topbar-meta .meta-item:nth-child(2) .value');
+  if (candidateEl) {
+    let cu = null;
+    try { cu = await getCurrentUser(); } catch(e) {}
+    candidateEl.textContent = (cu?.profile?.full_name || cu?.profile?.first_name || cu?.user?.email || 'Participant') + ' · ID ' + (activeUserId || '').slice(0, 4);
+  }
+  const attemptEl = document.querySelector('.topbar-meta .meta-item:nth-child(3) .value');
+  if (attemptEl) attemptEl.textContent = 'Attempt ' + attemptNumber;
+
+  // ============ CLEAR DUMMY CONTENT & POPULATE SECTION TABS ============
+  const sectionStrip = document.querySelector('.section-strip');
+  if (sectionStrip) sectionStrip.innerHTML = '';
+  const contentArea0 = document.querySelector('.content');
+  if (contentArea0) contentArea0.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:13px;">Loading questions...</div>';
+
+  if (sectionStrip && sections.length > 0) {
+    sections.forEach((sec, i) => {
+      const tab = document.createElement('div');
+      tab.className = 'section-tab' + (i === 0 ? ' active' : '');
+      tab.dataset.section = String(i);
+      tab.dataset.sectionId = sec.id;
+      tab.innerHTML = '<span class="num">' + String(i + 1).padStart(2, '0') + '</span><span>' + (sec.name || sec.title || 'Section ' + (i + 1)) + '</span>';
+      tab.addEventListener('click', () => navigateToSection(i));
+      sectionStrip.appendChild(tab);
+    });
+  }
+
+  // ============ RENDER CURRENT QUESTION ============
+  currentQuestion = questions[0]?.id || null;
+
+  function getQuestionById(qId) {
+    return questions.find(q => q.id === qId);
+  }
+
+  function getQuestionIndex(qId) {
+    return questions.findIndex(q => q.id === qId);
+  }
+
+  function getSectionForQuestion(q) {
+    return sections.findIndex(s => s.id === q.section_id);
+  }
+
+  function renderQuestion(qId) {
+    currentQuestion = qId;
+    const q = getQuestionById(qId);
+    if (!q) return;
+
+    const idx = getQuestionIndex(qId) + 1;
+    const sectionIdx = getSectionForQuestion(q);
+    const section = sections[sectionIdx] || {};
+    const resp = responses[qId] || {};
+
+    // Highlight active section tab
+    document.querySelectorAll('.section-tab').forEach((t, i) => {
+      t.classList.toggle('active', i === sectionIdx);
+    });
+
+    // Update sidebar section label
+    const sideLabel = document.querySelector('.side-title .count');
+    if (sideLabel && section.title) sideLabel.textContent = section.title;
+
+    const contentArea = document.querySelector('.content');
+    const qType = (q.question_type || 'mcq').toLowerCase();
+    const negMarking = assessmentConfig.negative_marking ? 'Negative marking applies' : 'No negative marking';
+
+    let html = '';
+    html += '<section class="qview active">';
+    html += '<div class="question-meta">';
+    html += '  <div class="qnum serif">' + idx + '</div>';
+    html += '  <div class="qmeta">';
+    html += '    <div class="qtype">' + formatQType(qType) + '</div>';
+    html += '    <div class="qpts"><strong>' + (q.points || 0) + ' points</strong> · ' + negMarking + ' · <span class="ref-id">Q-' + idx + ' / ' + (section.title || '') + '</span></div>';
+    html += '  </div>';
+    html += '</div>';
+    html += '<h1 class="qprompt serif">' + (q.prompt || q.question_text || '') + '</h1>';
+
+    if (q.context_text) {
+      html += '<p class="qcontext">' + q.context_text + '</p>';
+    }
+
+    if (q.scenario_text) {
+      html += '<div class="scenario-card"><p>' + q.scenario_text + '</p></div>';
+    }
+
+    // MCQ options
+    if (qType === 'mcq' && q['v2-mcq-options'] && q['v2-mcq-options'].length > 0) {
+      const options = q['v2-mcq-options'].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      html += '<div class="options">';
+      options.forEach((opt, oi) => {
+        const letter = String.fromCharCode(65 + oi);
+        const selected = resp.mcq_selected === opt.id ? ' selected' : '';
+        html += '<label class="option' + selected + '" data-option-id="' + opt.id + '">';
+        html += '  <span class="option-key">' + letter + '</span>';
+        html += '  <span class="option-text">' + (opt.option_text || '') + '</span>';
+        html += '</label>';
+      });
+      html += '</div>';
+    }
+
+    // Essay editor
+    if (qType === 'essay' || qType === 'prompt' || qType === 'scenario') {
+      const existingText = resp.essay_text || '';
+      const wordCount = existingText ? existingText.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+      html += '<div class="editor-wrap">';
+      html += '  <div class="editor-bar">';
+      html += '    <span class="label">Your response</span>';
+      html += '    <div class="editor-tools">';
+      html += '      <span class="stats" id="essay-word-count">' + wordCount + ' / ' + (q.word_limit || 1500) + ' words</span>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '  <div class="editor" id="essay-editor" contenteditable="true" data-placeholder="Begin typing your response here...">' + escapeHtml(existingText) + '</div>';
+      html += '</div>';
+
+      if (q.rubric_text) {
+        html += '<div class="rubric-hint"><svg class="icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.3"/><path d="M8 4 L8 9 M8 11 L8 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><div><strong>Scoring rubric:</strong> ' + q.rubric_text + '</div></div>';
+      }
+    }
+
+    // Code editor
+    if (qType === 'code' || qType === 'coding') {
+      const existingCode = resp.code_text || '';
+      const lines = (existingCode || '\n\n\n\n\n\n\n\n\n\n').split('\n');
+      html += '<div class="editor-wrap">';
+      html += '  <div class="editor-bar">';
+      html += '    <span class="label">' + (q.language || 'solution') + '</span>';
+      html += '    <div class="editor-tools">';
+      html += '      <span class="stats">' + (q.language || 'Python 3.11') + '</span>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '  <div class="code-editor">';
+      html += '    <div class="gutter" id="code-gutter">' + lines.map((_, i) => i + 1).join('<br>') + '</div>';
+      html += '    <pre class="code-area" id="code-editor" contenteditable="true">' + escapeHtml(existingCode) + '</pre>';
+      html += '  </div>';
+      html += '</div>';
+
+      if (q.rubric_text) {
+        html += '<div class="rubric-hint"><svg class="icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" stroke="currentColor" stroke-width="1.3"/><path d="M5 8 L7 10 L11 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><div><strong>' + (q.rubric_text) + '</strong></div></div>';
+      }
+    }
+
+    // Navigation row
+    const qIndex = getQuestionIndex(qId);
+    html += '<div class="nav-row">';
+    if (qIndex > 0) {
+      html += '<button class="btn btn-ghost" id="btn-prev">&#8592; Previous</button>';
+    } else {
+      html += '<span></span>';
+    }
+    html += '<div style="display:flex;gap:10px;">';
+    if (qIndex < questions.length - 1) {
+      html += '<button class="btn btn-primary" id="btn-next">Save &amp; continue &#8594;</button>';
+    } else {
+      html += '<button class="btn btn-primary" id="btn-submit" style="background:var(--accent);border-color:var(--accent);">Submit assessment</button>';
+    }
+    html += '</div></div>';
+    html += '</section>';
+
+    contentArea.innerHTML = html;
+
+    // ---- Bind events after render ----
+    bindQuestionEvents(qId, qType);
+    renderGrid();
+    updateProgressBar();
+  }
+
+  function formatQType(t) {
+    const map = {
+      mcq: 'Multiple choice · Single answer',
+      essay: 'Written response',
+      prompt: 'Applied scenario · Prompt engineering',
+      scenario: 'Applied scenario',
+      code: 'Coding task · Auto-graded',
+      coding: 'Coding task · Auto-graded'
+    };
+    return map[t] || t;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ============ BIND QUESTION-SPECIFIC EVENTS ============
+  function bindQuestionEvents(qId, qType) {
+    // MCQ click
+    if (qType === 'mcq') {
+      document.querySelectorAll('.option').forEach(opt => {
+        opt.addEventListener('click', async () => {
+          document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          const optionId = opt.dataset.optionId;
+          if (!responses[qId]) responses[qId] = {};
+          responses[qId].mcq_selected = optionId;
+          answeredSet.add(qId);
+          renderGrid();
+          updateProgressBar();
+          await upsertResponse(qId, { mcq_selected: optionId, is_answered: true });
+        });
+      });
+    }
+
+    // Essay input
+    if (qType === 'essay' || qType === 'prompt' || qType === 'scenario') {
+      const editor = document.getElementById('essay-editor');
+      if (editor) {
+        let debounce = null;
+        editor.addEventListener('input', () => {
+          const text = editor.innerText || '';
+          const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+          const countEl = document.getElementById('essay-word-count');
+          if (countEl) countEl.textContent = words + ' / ' + (getQuestionById(qId)?.word_limit || 1500) + ' words';
+          if (!responses[qId]) responses[qId] = {};
+          responses[qId].essay_text = text;
+          responses[qId].word_count = words;
+          answeredSet.add(qId);
+          renderGrid();
+          updateProgressBar();
+          clearTimeout(debounce);
+          debounce = setTimeout(() => {
+            upsertResponse(qId, { essay_text: text, word_count: words, is_answered: !!text });
+          }, 1500);
+        });
+      }
+    }
+
+    // Code input
+    if (qType === 'code' || qType === 'coding') {
+      const codeEl = document.getElementById('code-editor');
+      if (codeEl) {
+        let debounce = null;
+        codeEl.addEventListener('input', () => {
+          const code = codeEl.innerText || '';
+          if (!responses[qId]) responses[qId] = {};
+          responses[qId].code_text = code;
+          answeredSet.add(qId);
+          renderGrid();
+          updateProgressBar();
+          // Update gutter
+          const gutter = document.getElementById('code-gutter');
+          if (gutter) {
+            const lines = code.split('\n');
+            gutter.innerHTML = lines.map((_, i) => i + 1).join('<br>');
+          }
+          clearTimeout(debounce);
+          debounce = setTimeout(() => {
+            upsertResponse(qId, { code_text: code, is_answered: !!code });
+          }, 1500);
+        });
+      }
+    }
+
+    // Prev / Next buttons
+    const prevBtn = document.getElementById('btn-prev');
+    const nextBtn = document.getElementById('btn-next');
+    const submitBtn = document.getElementById('btn-submit');
+
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        const idx = getQuestionIndex(qId);
+        if (idx > 0) renderQuestion(questions[idx - 1].id);
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        const idx = getQuestionIndex(qId);
+        if (idx < questions.length - 1) renderQuestion(questions[idx + 1].id);
+      });
+    }
+    if (submitBtn) {
+      submitBtn.addEventListener('click', () => handleSubmit());
+    }
+  }
+
+  // ============ UPSERT RESPONSE TO SUPABASE ============
+  async function upsertResponse(questionId, fields) {
+    // Determine response_type from the question
+    const q = questions.find(qq => qq.id === questionId);
+    const qType = q?.question_type || 'essay';
+    // Map question_type to valid response_type (mcq, essay, code, scenario, coding)
+    const responseType = qType === 'mcq' ? 'mcq' : qType === 'coding' ? 'code' : qType === 'scenario' ? 'essay' : qType;
+
+    const payload = {
+      session_id: sessionId,
+      question_id: questionId,
+      response_type: responseType,
+      ...fields,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await sb
+      .from('v2-responses')
+      .upsert(payload, { onConflict: 'session_id,question_id' })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('[response upsert]', error.message);
+      // Fallback: try insert if upsert fails
+      const existingId = responses[questionId]?.id;
+      if (existingId) {
+        const { error: updErr } = await sb.from('v2-responses')
+          .update({ ...fields, updated_at: new Date().toISOString() })
+          .eq('id', existingId);
+        if (updErr) console.warn('[response update fallback]', updErr.message);
+      } else {
+        const { data: insertData, error: insErr } = await sb.from('v2-responses')
+          .insert(payload).select().single();
+        if (insErr) {
+          console.warn('[response insert fallback]', insErr.message);
+        } else if (insertData) {
+          if (!responses[questionId]) responses[questionId] = {};
+          responses[questionId].id = insertData.id;
+        }
+      }
+    } else if (data) {
+      if (!responses[questionId]) responses[questionId] = {};
+      responses[questionId].id = data.id;
+    }
+  }
+
+  // ============ FLAG TOGGLE ============
+  const flagBtn = document.querySelector('.flag-btn');
+  if (flagBtn) {
+    flagBtn.addEventListener('click', async () => {
+      const isFlagged = flaggedSet.has(currentQuestion);
+      if (isFlagged) {
+        flaggedSet.delete(currentQuestion);
+      } else {
+        flaggedSet.add(currentQuestion);
+      }
+      renderGrid();
+
+      // Persist flag state
+      await sb
+        .from('v2-responses')
+        .upsert({
+          session_id: sessionId,
+          question_id: currentQuestion,
+          is_flagged: !isFlagged,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'session_id,question_id' });
+
+      flagBtn.innerHTML = (flaggedSet.has(currentQuestion)
+        ? '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 14 L3 2 L13 2 L10 6 L13 10 L3 10" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" fill="var(--accent)"/></svg> Unflag this question'
+        : '<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 14 L3 2 L13 2 L10 6 L13 10 L3 10" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg> Flag this question');
+    });
+  }
+
+  // ============ QUESTION GRID (SIDEBAR) ============
+  const grid = document.getElementById('qgrid');
+
+  function renderGrid() {
+    if (!grid) return;
+    grid.innerHTML = '';
+    questions.forEach((q, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'qcell';
+      if (answeredSet.has(q.id)) cell.classList.add('answered');
+      if (flaggedSet.has(q.id)) cell.classList.add('flagged');
+      if (q.id === currentQuestion) cell.classList.add('current');
+      cell.textContent = i + 1;
+      cell.addEventListener('click', () => renderQuestion(q.id));
+      grid.appendChild(cell);
+    });
+  }
+
+  function updateProgressBar() {
+    const pct = totalQuestions > 0 ? Math.round((answeredSet.size / totalQuestions) * 100) : 0;
+    const bar = document.querySelector('.progress-fill');
+    if (bar) bar.style.width = pct + '%';
+    const countEl = document.querySelector('.side-title .count');
+    // Keep section label in first .side-title, update progress count
+    const progressCount = document.querySelector('.side-section:first-child .side-title .count');
+    if (progressCount) progressCount.textContent = answeredSet.size + ' / ' + totalQuestions;
+    const progressText = document.querySelector('.progress-text');
+    if (progressText) {
+      progressText.innerHTML = '<span>Answered</span><span>' + pct + '%</span>';
+    }
+  }
+
+  // ============ SECTION NAVIGATION ============
+  function navigateToSection(sectionIdx) {
+    const sec = sections[sectionIdx];
+    if (!sec) return;
+    // Find first question in this section
+    const firstQ = questions.find(q => q.section_id === sec.id);
+    if (firstQ) renderQuestion(firstQ.id);
+  }
+
+  // ============ AUTO-SAVE ============
+  async function autoSave() {
+    const payload = {
+      session_id: sessionId,
+      responses_data: responses,
+      flagged_questions: Array.from(flaggedSet),
+      answered_questions: Array.from(answeredSet),
+      current_question: questions.indexOf(questions.find(q => q.id === currentQuestion)),
+      saved_at: new Date().toISOString()
+    };
+
+    // Upsert auto-save record
+    const { error } = await sb
+      .from('v2-auto-saves')
+      .upsert(payload, { onConflict: 'session_id' });
+
+    if (error) {
+      console.warn('[auto-save]', error.message);
+    }
+
+    // Sync timer back to session
+    await sb
+      .from('v2-sessions')
+      .update({ time_remaining_sec: totalSec })
+      .eq('id', sessionId);
+
+    lastSaveTime = Date.now();
+    updateAutoSaveDisplay();
+  }
+
+  function updateAutoSaveDisplay() {
+    const el = document.querySelector('.integrity-card .integrity-row:nth-child(3) .val');
+    if (!el) return;
+    const ago = Math.round((Date.now() - lastSaveTime) / 1000);
+    const mm = String(Math.floor(ago / 60)).padStart(2, '0');
+    const ss = String(ago % 60).padStart(2, '0');
+    el.innerHTML = '<span class="integrity-dot"></span>' + mm + ':' + ss + ' ago';
+  }
+
+  autoSaveTimer = setInterval(autoSave, autoSaveInterval * 1000);
+  setInterval(updateAutoSaveDisplay, 1000);
+
+  // ============ SESSION INTEGRITY — TAB BLUR ============
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden) {
+      tabFocusLosses++;
+
+      // Log integrity event
+      await sb.from('v2-integrity-logs').insert({
+        session_id: sessionId,
+        user_id: activeUserId,
+        event_type: 'tab_blur',
+        detail: 'Tab lost focus (count: ' + tabFocusLosses + ')',
+        created_at: new Date().toISOString()
+      });
+
+      const tabEl = document.querySelector('.integrity-card .integrity-row:first-child .val');
+      if (tabEl) {
+        if (tabFocusLosses >= 3) {
+          tabEl.innerHTML = '<span class="integrity-dot" style="background:var(--accent);"></span>' + tabFocusLosses + ' losses';
+        } else {
+          tabEl.innerHTML = '<span class="integrity-dot" style="background:var(--warn);"></span>' + tabFocusLosses + ' loss(es)';
+        }
+      }
+    }
+  });
+
+  // ============ SESSION INTEGRITY — NETWORK CHANGE ============
+  async function handleNetworkChange() {
+    const online = navigator.onLine;
+    const netEl = document.querySelector('.integrity-card .integrity-row:nth-child(2) .val');
+    if (netEl) {
+      netEl.innerHTML = online
+        ? '<span class="integrity-dot"></span>Connected'
+        : '<span class="integrity-dot" style="background:var(--accent);"></span>Offline';
+    }
+
+    await sb.from('v2-integrity-logs').insert({
+      session_id: sessionId,
+      user_id: activeUserId,
+      event_type: 'network_change',
+      detail: online ? 'Back online' : 'Went offline',
+      created_at: new Date().toISOString()
+    });
+  }
+  window.addEventListener('online', handleNetworkChange);
+  window.addEventListener('offline', handleNetworkChange);
+
+  // ============ PROCTORING STATUS ============
+  const procEl = document.querySelector('.integrity-card .integrity-row:nth-child(4) .val');
+  if (procEl) {
+    if (assessmentConfig.proctoring) {
+      procEl.innerHTML = '<span class="integrity-dot"></span>Active';
+    } else {
+      procEl.innerHTML = '<span class="integrity-dot" style="background:var(--ink-faint);"></span>Disabled';
+    }
+  }
+
+  // ============ SUBMIT HANDLER ============
+  async function handleSubmit() {
+    if (!confirm('Are you sure you want to submit? You cannot change your answers after submission.')) return;
+
+    showToast('Submitting assessment...', 'info');
+
+    // Final auto-save
+    await autoSave();
+
+    // Update session status
+    const { error: sessUpd } = await sb
+      .from('v2-sessions')
+      .update({
+        status: 'submitted',
+        submitted_at: new Date().toISOString(),
+        time_remaining_sec: totalSec
+      })
+      .eq('id', sessionId);
+
+    if (sessUpd) {
+      showToast('Submission failed: ' + sessUpd.message, 'error');
+      return;
+    }
+
+    // Insert integrity summary
+    await sb.from('v2-integrity-logs').insert({
+      session_id: sessionId,
+      user_id: activeUserId,
+      event_type: 'submission_summary',
+      detail: JSON.stringify({
+        tab_focus_losses: tabFocusLosses,
+        total_answered: answeredSet.size,
+        total_flagged: flaggedSet.size,
+        time_remaining_sec: totalSec
+      }),
+      created_at: new Date().toISOString()
+    });
+
+    // Insert grading queue items for each answered question
+    const gradingItems = questions
+      .filter(q => answeredSet.has(q.id))
+      .map(q => ({
+        session_id: sessionId,
+        question_id: q.id,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }));
+
+    if (gradingItems.length > 0) {
+      await sb.from('v2-grading-queue').insert(gradingItems);
+    }
+
+    // Stop timers
+    clearInterval(autoSaveTimer);
+    clearInterval(timerInterval);
+
+    // Show thank you screen
+    document.getElementById('tyQuestionCount').textContent = totalQuestions;
+    document.getElementById('tyAnsweredCount').textContent = answeredSet.size;
+    document.getElementById('tyFlaggedCount').textContent = flaggedSet.size;
+    const tyScreen = document.getElementById('thankYouScreen');
+    tyScreen.style.display = 'flex';
+    showToast('Assessment submitted successfully!', 'success');
+  }
+
+  // ============ TIMER COUNTDOWN ============
+  function updateTimerDisplay() {
+    const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+    const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+    const s = String(totalSec % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = h + ':' + m + ':' + s;
+  }
+  updateTimerDisplay();
+
+  timerInterval = setInterval(async () => {
+    if (totalSec <= 0) return;
+    totalSec--;
+    updateTimerDisplay();
+
+    // Auto-submit when timer expires
+    if (totalSec <= 0) {
+      clearInterval(timerInterval);
+      await autoSave();
+      showToast('Time is up! Auto-submitting your assessment...', 'warn');
+      await handleSubmit();
+    }
+  }, 1000);
+
+  // ============ RENDER FIRST QUESTION ============
+  renderQuestion(currentQuestion);
+  updateProgressBar();
+
+  } // end loadAndStartAssessment
+
+})();
+</script>
+
+</body>
+</html>

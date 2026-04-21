@@ -1,0 +1,1747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Admin — Assessment Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b; --ink-soft: #2a3a52; --ink-mute: #5a6a82; --ink-faint: #95a0b3;
+    --paper: #fbfaf7; --paper-warm: #f5f2ea; --rule: #e6e1d3; --rule-soft: #efece1;
+    --edstellar: #1d4ed8; --edstellar-deep: #0a2472; --edstellar-mist: #e8eeff;
+    --accent: #c8410b; --accent-soft: #fdeee0;
+    --ok: #1f6f43; --ok-soft: #e3f1e7; --warn: #8a5a00; --warn-soft: #fdf3d8;
+    --bad: #a8290c; --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; font-feature-settings: 'ss01', 'cv11'; -webkit-font-smoothing: antialiased; line-height: 1.5; }
+  body { background-image: radial-gradient(circle at 1px 1px, rgba(14,26,43,0.04) 1px, transparent 0); background-size: 28px 28px; min-height: 100vh; }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* TOP BAR */
+  .topbar { background: var(--ink); color: var(--paper); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #000; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; }
+  .brand-logo-text { color: var(--ink); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .top-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 6px 14px; font-size: 11px; font-family: inherit; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+  .top-btn.primary { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+
+  /* BREADCRUMB */
+  .crumb-strip { background: var(--paper-warm); border-bottom: 1px solid var(--rule); padding: 10px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--ink-mute); }
+  .crumbs { display: flex; align-items: center; gap: 10px; }
+  .crumbs a { color: var(--ink-mute); text-decoration: none; }
+  .crumbs a:hover { color: var(--ink); }
+  .crumbs .sep { color: var(--ink-faint); }
+  .crumbs .current { color: var(--ink); font-weight: 500; }
+
+  /* MAIN */
+  .main { max-width: 900px; margin: 0 auto; padding: 28px 28px 60px; }
+
+  /* BUTTONS */
+  .btn { padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+  .btn-danger { border-color: var(--bad); color: var(--bad); }
+  .btn-danger:hover { background: var(--bad); color: var(--paper); }
+  .btn-ok { background: var(--ok); color: var(--paper); border-color: var(--ok); }
+  .btn-ok:hover { background: #165a35; border-color: #165a35; }
+
+  /* FORM */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; }
+  .form-input:focus { border-color: var(--ink-faint); background: var(--paper); }
+  .form-input::placeholder { color: var(--ink-faint); }
+  .form-textarea { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; resize: vertical; min-height: 80px; }
+  .form-select { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; appearance: none; }
+
+  /* SECTION */
+  .sect-head { display: flex; align-items: baseline; justify-content: space-between; margin: 32px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .sect-head h2 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .sect-head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-right: 8px; font-weight: 600; }
+  .sect-head .meta { font-size: 11px; color: var(--ink-mute); }
+
+  /* ASSESSMENT SETTINGS CARD */
+  .settings-card { border: 1px solid var(--rule); background: var(--paper); padding: 24px; margin-bottom: 8px; }
+
+  /* QUESTION LIST */
+  .question-item {
+    border: 1px solid var(--rule); background: var(--paper); padding: 18px 22px; margin-bottom: 8px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center;
+    transition: border-color 0.15s;
+  }
+  .question-item:hover { border-color: var(--ink-faint); }
+  .q-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--ink-faint); width: 28px; text-align: center; }
+  .q-body {}
+  .q-title { font-size: 13.5px; font-weight: 500; color: var(--ink); margin-bottom: 4px; line-height: 1.4; }
+  .q-meta-row { display: flex; gap: 12px; align-items: center; }
+  .q-type-tag { display: inline-block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); background: var(--paper-warm); padding: 2px 8px; border: 1px solid var(--rule); font-weight: 600; }
+  .q-type-tag.mcq { color: var(--edstellar); background: var(--edstellar-mist); border-color: #c5d5f5; }
+  .q-type-tag.scenario { color: var(--accent); background: var(--accent-soft); border-color: #e8c0a3; }
+  .q-type-tag.coding { color: var(--ok); background: var(--ok-soft); border-color: #c5e0ce; }
+  .q-points { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+  .q-options-preview { font-size: 11.5px; color: var(--ink-mute); margin-top: 4px; }
+  .q-actions { display: flex; gap: 4px; align-items: center; }
+  .q-act-btn { background: none; border: 1px solid var(--rule); color: var(--ink-faint); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .q-act-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .q-act-btn.delete:hover { color: var(--bad); border-color: var(--bad); }
+  .q-detail { display: none; padding: 14px 22px 18px 66px; border-top: 1px dashed var(--rule); background: var(--paper); }
+  .q-detail-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 600; margin-bottom: 5px; }
+  .q-detail-option { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 11.5px; margin-bottom: 3px; }
+  .q-detail-option.correct { background: var(--ok-soft); border: 1px solid #c5e0ce; }
+  .q-detail-option.wrong { background: var(--paper-warm); border: 1px solid var(--rule); }
+  .q-detail-code { padding: 8px 12px; background: #1e1e2e; color: #cdd6f4; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; margin-bottom: 8px; overflow-x: auto; white-space: pre-wrap; }
+
+  /* ACTION BAR */
+  .action-bar { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+
+  /* STATUS */
+  .status-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; font-weight: 600; display: inline-flex; align-items: center; border: 1px solid; }
+  .status-tag.published { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .status-tag.draft { background: var(--warn-soft); color: var(--warn); border-color: #ead8a3; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(14,26,43,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: var(--paper); border: 1px solid var(--rule); width: 600px; max-height: 85vh; overflow-y: auto; }
+  .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--ink-mute); padding: 4px; }
+  .modal-close:hover { color: var(--ink); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--rule); display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* OPTION ROW */
+  .option-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .option-key { width: 32px; height: 36px; border: 1px solid var(--rule); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: var(--ink-mute); background: var(--paper-warm); flex-shrink: 0; }
+  .option-key.correct { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .option-input { flex: 1; padding: 8px 12px; font-family: inherit; font-size: 12.5px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; }
+  .option-correct { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .option-correct input { accent-color: var(--ok); }
+
+  /* SECTION DIVIDER */
+  .section-divider { display: flex; align-items: center; gap: 12px; padding: 12px 22px; background: var(--paper-warm); border: 1px solid var(--rule); margin-bottom: 8px; }
+  .section-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--accent); width: 28px; text-align: center; }
+  .section-name-input { border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink); outline: none; flex: 1; }
+  .section-name-input:focus { border-bottom: 1px solid var(--ink-faint); }
+  .section-qcount { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-faint); white-space: nowrap; }
+  .add-section-btn { background: none; border: 1px solid var(--rule); color: var(--ink-mute); padding: 4px 10px; font-family: inherit; font-size: 10px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+  .add-section-btn:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .q-section-tag { display: inline-block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); background: var(--paper); padding: 2px 6px; border: 1px solid var(--rule-soft); font-weight: 500; }
+
+  /* RUBRIC */
+  .rubric-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .rubric-remove { background: none; border: none; color: var(--ink-faint); cursor: pointer; padding: 4px; }
+  .rubric-remove:hover { color: var(--bad); }
+
+  /* ASSIGN MODAL */
+  .assign-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--rule); }
+  .assign-row { padding: 10px 14px; border-bottom: 1px solid var(--rule-soft); display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+  .assign-row:last-child { border-bottom: none; }
+  .assign-row:hover { background: #fdfcf9; }
+  .assign-row input { accent-color: var(--ink); }
+  .assign-name { font-weight: 500; }
+  .assign-dept { font-size: 11px; color: var(--ink-mute); margin-left: auto; }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+  @keyframes sb-spin { to { transform: rotate(360deg); } }
+
+  /* ============ MOBILE RESPONSIVE ============ */
+  @media (max-width: 768px) {
+    .modal { width: 95vw !important; max-width: 95vw; max-height: 92vh; border: none; }
+    .modal-header { padding: 14px 16px; }
+    .modal-title { font-size: 15px; }
+    .modal-body { padding: 16px; }
+    .modal-footer { padding: 12px 16px; flex-wrap: wrap; }
+    .modal-footer .btn { flex: 1; min-width: 0; text-align: center; }
+    .form-input, .form-select { font-size: 14px; padding: 10px 12px; }
+    /* Grid layouts stack on mobile */
+    .wiz-grid { display: flex !important; flex-direction: column !important; }
+    .wiz-grid .form-group { margin-bottom: 12px; }
+    /* MCQ option rows */
+    .option-row { flex-wrap: wrap; }
+    .option-input { min-width: 0; width: 100%; flex-basis: calc(100% - 40px - 80px); }
+    /* Rubric rows */
+    .rubric-row { grid-template-columns: 1fr 60px auto; }
+    /* Assign modal */
+    .assign-row { flex-wrap: wrap; gap: 6px; }
+    .assign-dept { margin-left: 0; }
+    /* Section divider */
+    .section-divider { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+    .add-section-btn { width: 100%; text-align: center; }
+    /* Question detail */
+    .q-detail { padding: 12px 14px 16px 14px; }
+    /* Page-level form grids */
+    .settings-card [style*="grid-template-columns:1fr 1fr 1fr"] { display: flex !important; flex-direction: column !important; }
+  }
+  @media (max-width: 480px) {
+    .modal { width: 100vw !important; max-width: 100vw; max-height: 100vh; height: 100vh; }
+    .modal-overlay.visible { align-items: flex-end; }
+    .modal-header { padding: 12px 14px; }
+    .modal-body { padding: 14px; }
+    .modal-footer { padding: 10px 14px; flex-direction: column; }
+    .modal-footer .btn { width: 100%; }
+    .option-row { flex-direction: column; align-items: stretch; gap: 4px; }
+    .option-key { width: 100%; height: auto; padding: 4px; }
+    .option-input { width: 100%; }
+    .option-correct { justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;"></div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Assessment Editor</span>
+  </div>
+  <div class="topbar-actions">
+    <a href="admin_dashboard.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Dashboard
+    </a>
+    <button class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Preview
+    </button>
+    <button class="top-btn primary">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+      Save
+    </button>
+  </div>
+</div>
+
+<!-- BREADCRUMB -->
+<div class="crumb-strip">
+  <div class="crumbs">
+    <a href="admin_dashboard.html">Dashboard</a>
+    <span class="sep">/</span>
+    <a href="admin_dashboard.html">Assessments</a>
+    <span class="sep">/</span>
+    <span class="current">AI Foundations — Final Assessment</span>
+  </div>
+  <span class="status-tag published">Published</span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ASSESSMENT SETTINGS -->
+  <div class="sect-head" style="margin-top:0;">
+    <h2><span class="num">01</span>Assessment settings</h2>
+  </div>
+
+  <div class="settings-card">
+    <div class="form-group">
+      <label class="form-label">Assessment title</label>
+      <input class="form-input" type="text" id="assessTitle" value="">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <textarea class="form-textarea" id="assessDesc"></textarea>
+    </div>
+    <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Duration (minutes)</label>
+        <input class="form-input" type="number" id="assessDuration" value="60">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Passing score (%)</label>
+        <input class="form-input" type="number" id="assessPassing" value="70">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Total points</label>
+        <input class="form-input mono" type="text" id="assessTotalPts" value="100" readonly style="background:var(--paper);color:var(--ink-faint);">
+      </div>
+    </div>
+    <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Assessment ID</label>
+        <input class="form-input mono" type="text" id="assessId" value="" readonly style="background:var(--paper);color:var(--ink-faint);">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Programme</label>
+        <select class="form-select" id="assessProgramme">
+          <option value="">Select programme...</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Max attempts</label>
+        <input class="form-input" type="number" id="assessMaxAttempts" value="1" min="1">
+      </div>
+    </div>
+    <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:18px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Negative marking</label>
+        <select class="form-select" id="assessNegMarking">
+          <option value="none" selected>No negative marking</option>
+          <option value="25">-25% per wrong answer</option>
+          <option value="50">-50% per wrong answer</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Auto-save interval (sec)</label>
+        <input class="form-input" type="number" id="assessAutoSave" value="30" min="10">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Proctoring</label>
+        <select class="form-select" id="assessProctoring">
+          <option value="enabled" selected>Enabled</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="sect-head">
+    <h2><span class="num">02</span>Questions</h2>
+    <div style="display:flex;gap:8px;">
+      <span class="meta" style="margin-right:8px;line-height:2;" id="questionCount">0 questions · 0 points</span>
+      <button class="btn btn-sm" onclick="document.getElementById('addQuestionModal').classList.add('visible')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Question
+      </button>
+    </div>
+  </div>
+
+  <!-- Dynamic questions container -->
+  <div id="questionsContainer" style="color:var(--ink-faint);font-size:12px;padding:30px;text-align:center;">Loading questions...</div>
+
+  <!-- ASSESSMENT RUBRIC / SECTION WEIGHTS -->
+  <div class="sect-head">
+    <h2><span class="num">03</span>Assessment rubric / section weights</h2>
+  </div>
+
+  <div class="settings-card">
+    <div style="border:1px solid var(--rule);">
+      <div style="display:grid;grid-template-columns:1fr 100px 100px 40px;gap:0;background:var(--paper-warm);padding:10px 16px;border-bottom:1px solid var(--rule);">
+        <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;">Section name</span>
+        <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;text-align:center;">Max points</span>
+        <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;text-align:center;">Weight</span>
+        <span></span>
+      </div>
+      <div id="rubricTableBody">
+        <div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">Loading rubric...</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="addRubricItem()">+ Add section rubric item</button>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="openAssignModal()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        Assign to Participants
+      </button>
+      <button class="btn btn-ghost btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        Preview
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm">Save as Draft</button>
+      <button class="btn btn-ok btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Publish
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD QUESTION MODAL ============ -->
+<div class="modal-overlay" id="addQuestionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title serif">Add Question</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Question type</label>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" style="background:var(--edstellar-mist);color:var(--edstellar);border-color:#c5d5f5;">MCQ</button>
+          <button class="btn btn-ghost btn-sm">Scenario / Essay</button>
+          <button class="btn btn-ghost btn-sm">Coding</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Section</label>
+        <select class="form-select" id="questionSection">
+          <option>Foundations</option>
+          <option>Knowledge</option>
+          <option>Applied scenarios</option>
+          <option>Prompt engineering</option>
+          <option>Coding task</option>
+          <option>Reflection</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Question prompt</label>
+        <textarea class="form-textarea" placeholder="Enter the question text..." style="min-height:100px;"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Options</label>
+        <div class="option-row">
+          <div class="option-key correct">A</div>
+          <input class="option-input" type="text" placeholder="Option A text...">
+          <label class="option-correct"><input type="radio" name="correct" checked> Correct</label>
+        </div>
+        <div class="option-row">
+          <div class="option-key">B</div>
+          <input class="option-input" type="text" placeholder="Option B text...">
+          <label class="option-correct"><input type="radio" name="correct"> Correct</label>
+        </div>
+        <div class="option-row">
+          <div class="option-key">C</div>
+          <input class="option-input" type="text" placeholder="Option C text...">
+          <label class="option-correct"><input type="radio" name="correct"> Correct</label>
+        </div>
+        <div class="option-row">
+          <div class="option-key">D</div>
+          <input class="option-input" type="text" placeholder="Option D text...">
+          <label class="option-correct"><input type="radio" name="correct"> Correct</label>
+        </div>
+      </div>
+
+      <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Points</label>
+          <input class="form-input" type="number" value="3">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Competency</label>
+          <select class="form-select">
+            <option>AI strategy & governance</option>
+            <option>Risk & UAE PDPL compliance</option>
+            <option>Prompt engineering</option>
+            <option>Pilot-to-production workflow</option>
+            <option>Change management</option>
+            <option>UAE AI landscape</option>
+            <option>Coding & automation</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ======= Scenario / Essay fields (hidden by default) ======= -->
+      <div id="scenarioFields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Scenario context</label>
+          <textarea class="form-textarea" placeholder="Describe the real-world scenario context for the candidate..." style="min-height:150px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Word limit</label>
+          <input class="form-input" type="number" value="1500" min="100" placeholder="1500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rubric criteria</label>
+          <div id="rubricCriteria">
+            <div class="rubric-row">
+              <input class="form-input" type="text" placeholder="Criterion name" style="margin-bottom:0;">
+              <input class="form-input" type="number" placeholder="Pts" style="width:70px;margin-bottom:0;text-align:center;">
+              <button class="rubric-remove" title="Remove">&times;</button>
+            </div>
+            <div class="rubric-row">
+              <input class="form-input" type="text" placeholder="Criterion name" style="margin-bottom:0;">
+              <input class="form-input" type="number" placeholder="Pts" style="width:70px;margin-bottom:0;text-align:center;">
+              <button class="rubric-remove" title="Remove">&times;</button>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="addRubricRow()">+ Add criterion</button>
+        </div>
+      </div>
+
+      <!-- ======= Coding fields (hidden by default) ======= -->
+      <div id="codingFields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select class="form-select">
+            <option selected>Python 3.11</option>
+            <option>JavaScript</option>
+            <option>Java</option>
+            <option>Go</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Function signature</label>
+          <input class="form-input mono" type="text" placeholder="e.g. classify_complaint(text, severity_keywords)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Starter code</label>
+          <textarea class="form-textarea mono" placeholder="def classify_complaint(text, severity_keywords):\n    pass" style="min-height:200px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;"></textarea>
+        </div>
+        <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Visible test cases</label>
+            <div id="visibleTests">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;">
+                <input class="form-input" type="text" placeholder="Test name" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Input" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Expected" style="margin-bottom:0;font-size:11px;">
+                <button class="rubric-remove" onclick="this.parentElement.remove()">&times;</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;">
+                <input class="form-input" type="text" placeholder="Test name" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Input" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Expected" style="margin-bottom:0;font-size:11px;">
+                <button class="rubric-remove" onclick="this.parentElement.remove()">&times;</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:4px;font-size:10px;" onclick="addTestRow('visibleTests')">+ Add test</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hidden test cases</label>
+            <div id="hiddenTests">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;">
+                <input class="form-input" type="text" placeholder="Test name" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Input" style="margin-bottom:0;font-size:11px;">
+                <input class="form-input" type="text" placeholder="Expected" style="margin-bottom:0;font-size:11px;">
+                <button class="rubric-remove" onclick="this.parentElement.remove()">&times;</button>
+              </div>
+            </div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:4px;font-size:10px;" onclick="addTestRow('hiddenTests')">+ Add test</button>
+          </div>
+        </div>
+        <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Visible test points</label>
+            <input class="form-input" type="number" value="6">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Hidden test points</label>
+            <input class="form-input" type="number" value="14">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:18px;">
+        <label class="form-label">Explanation (shown after grading)</label>
+        <textarea class="form-textarea" placeholder="Explain why the correct answer is correct..." style="min-height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Question
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EDIT QUESTION MODAL ============ -->
+<div class="modal-overlay" id="editQuestionModal">
+  <div class="modal" style="width:620px;">
+    <div class="modal-header">
+      <span class="modal-title serif">Edit Question</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editQId">
+      <input type="hidden" id="editQType">
+
+      <div class="form-group">
+        <label class="form-label">Question type</label>
+        <div id="editQTypeDisplay" style="font-size:12px;color:var(--ink-mute);"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Question prompt</label>
+        <textarea class="form-textarea" id="editQPrompt" style="min-height:100px;"></textarea>
+      </div>
+
+      <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Points</label>
+          <input class="form-input" type="number" id="editQPoints" value="3">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Competency</label>
+          <select class="form-select" id="editQCompetency">
+            <option value="">Select...</option>
+            <option>AI strategy & governance</option>
+            <option>Risk & UAE PDPL compliance</option>
+            <option>Prompt engineering</option>
+            <option>Pilot-to-production workflow</option>
+            <option>Change management</option>
+            <option>UAE AI landscape</option>
+            <option>Coding & automation</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- MCQ options -->
+      <div id="editMcqFields" style="display:none;margin-top:18px;">
+        <div class="form-group">
+          <label class="form-label">Options</label>
+          <div id="editMcqOptions"></div>
+        </div>
+      </div>
+
+      <!-- Scenario fields -->
+      <div id="editScenarioFields" style="display:none;margin-top:18px;">
+        <div class="form-group">
+          <label class="form-label">Scenario context</label>
+          <textarea class="form-textarea" id="editScenarioContext" style="min-height:120px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Word limit</label>
+          <input class="form-input" type="number" id="editWordLimit" value="500" min="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rubric criteria</label>
+          <div id="editRubricCriteria"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="addEditRubricRow()">+ Add criterion</button>
+        </div>
+      </div>
+
+      <!-- Coding fields -->
+      <div id="editCodingFields" style="display:none;margin-top:18px;">
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select class="form-select" id="editCodingLang">
+            <option>Python 3.11</option>
+            <option>JavaScript</option>
+            <option>Java</option>
+            <option>Go</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Function signature</label>
+          <input class="form-input mono" type="text" id="editFuncSig">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Starter code</label>
+          <textarea class="form-textarea mono" id="editStarterCode" style="min-height:150px;font-family:'JetBrains Mono',monospace;font-size:12px;"></textarea>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:18px;">
+        <label class="form-label">Explanation (shown after grading)</label>
+        <textarea class="form-textarea" id="editQExplanation" style="min-height:60px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEditedQuestion()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ASSIGN MODAL ============ -->
+<div class="modal-overlay" id="assignModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title serif">Assign to Employees</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Due date</label>
+        <input class="form-input" type="date" id="assignDueDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Select employees</label>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:12px;color:var(--ink-mute);display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" id="assignSelectAll"> <span id="assignSelectAllLabel">Select all</span>
+          </label>
+        </div>
+        <div class="assign-list" id="assignEmployeeList">
+          <div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">Loading employees...</div>
+        </div>
+      </div>
+      <div id="assignedReport" style="display:none;">
+        <label class="form-label" style="margin-bottom:8px;">Currently assigned</label>
+        <div class="assign-list" id="assignedReportList" style="max-height:180px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Assign & Send OTP
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="email-service.js"></script>
+<script>
+(async function() {
+  await requireAdmin();
+  const sb = getClient();
+  const orgId = await getOrgId();
+  const params = new URLSearchParams(window.location.search);
+  let assessmentId = params.get('id');
+  let currentQuestionType = 'mcq';
+
+  // ============ QUESTION TYPE SWITCHING ============
+  const typeButtons = document.querySelectorAll('#addQuestionModal .form-group:first-child .btn');
+  const mcqOptions = document.querySelector('#addQuestionModal .form-group:has(.option-row)');
+  const scenarioFields = document.getElementById('scenarioFields');
+  const codingFields = document.getElementById('codingFields');
+
+  typeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      typeButtons.forEach(b => { b.className = 'btn btn-ghost btn-sm'; b.style.cssText = ''; });
+      const label = btn.textContent.trim();
+      if (label === 'MCQ') {
+        currentQuestionType = 'mcq';
+        btn.style.cssText = 'background:var(--edstellar-mist);color:var(--edstellar);border-color:#c5d5f5;';
+        btn.className = 'btn btn-sm';
+        if (mcqOptions) mcqOptions.style.display = '';
+        scenarioFields.style.display = 'none';
+        codingFields.style.display = 'none';
+      } else if (label === 'Scenario / Essay') {
+        currentQuestionType = 'scenario';
+        btn.style.cssText = 'background:var(--accent-soft);color:var(--accent);border-color:#e8c0a3;';
+        btn.className = 'btn btn-sm';
+        if (mcqOptions) mcqOptions.style.display = 'none';
+        scenarioFields.style.display = '';
+        codingFields.style.display = 'none';
+      } else if (label === 'Coding') {
+        currentQuestionType = 'coding';
+        btn.style.cssText = 'background:var(--ok-soft);color:var(--ok);border-color:#c5e0ce;';
+        btn.className = 'btn btn-sm';
+        if (mcqOptions) mcqOptions.style.display = 'none';
+        scenarioFields.style.display = 'none';
+        codingFields.style.display = '';
+      }
+    });
+  });
+
+  // ============ LOAD PROGRAMMES ============
+  async function loadProgrammes() {
+    const { data } = await sb.from('v2-programmes').select('*').eq('org_id', orgId);
+    const sel = document.getElementById('assessProgramme');
+    sel.innerHTML = '<option value="">Select programme...</option>';
+    if (data) data.forEach(p => { sel.innerHTML += '<option value="' + p.id + '">' + p.name + '</option>'; });
+  }
+
+  // ============ LOAD OR CREATE ASSESSMENT ============
+  async function loadAssessment() {
+    if (!assessmentId) {
+      // Generate new assessment ID
+      const { count } = await sb.from('v2-assessments').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+      const num = String((count || 0) + 1).padStart(3, '0');
+      const newId = 'ASM-' + num;
+      document.getElementById('assessId').value = newId;
+      document.getElementById('assessTitle').value = '';
+      document.getElementById('assessDesc').value = '';
+      document.getElementById('questionsContainer').innerHTML = '<div style="padding:40px;text-align:center;color:var(--ink-faint);font-size:12px;">No questions yet. Add your first question.</div>';
+      document.getElementById('questionCount').textContent = '0 questions \u00b7 0 points';
+      return;
+    }
+
+    const { data: assess, error } = await sb.from('v2-assessments').select('*').eq('id', assessmentId).single();
+    if (error || !assess) {
+      showToast('Assessment not found', 'error');
+      return;
+    }
+    document.getElementById('assessTitle').value = assess.title || '';
+    document.getElementById('assessDesc').value = assess.description || '';
+    document.getElementById('assessDuration').value = assess.duration_minutes || 60;
+    document.getElementById('assessPassing').value = assess.passing_score || 70;
+    document.getElementById('assessTotalPts').value = assess.total_points || 100;
+    document.getElementById('assessId').value = assess.assessment_id || '';
+    document.getElementById('assessProgramme').value = assess.programme_id || '';
+    document.getElementById('assessMaxAttempts').value = assess.max_attempts || 1;
+    document.getElementById('assessNegMarking').value = assess.negative_marking || 'none';
+    document.getElementById('assessAutoSave').value = assess.auto_save_interval || 30;
+    document.getElementById('assessProctoring').value = assess.proctoring_enabled ? 'enabled' : 'disabled';
+
+    await loadQuestions();
+  }
+
+  // ============ LOAD QUESTIONS ============
+  async function loadQuestions() {
+    if (!assessmentId) return;
+    const container = document.getElementById('questionsContainer');
+
+    const [sectRes, qRes] = await Promise.all([
+      sb.from('v2-assessment-sections').select('*').eq('assessment_id', assessmentId).order('sort_order'),
+      sb.from('v2-questions').select('*, "v2-mcq-options"(*), "v2-rubric-criteria"(*), "v2-test-cases"(*)').eq('assessment_id', assessmentId).order('sort_order')
+    ]);
+
+    const sections = sectRes.data || [];
+    const questions = qRes.data || [];
+
+    // Fallback: if nested mcq-options select returned empty, fetch them directly
+    const mcqQuestions = questions.filter(q => q.question_type === 'mcq' && (!q['v2-mcq-options'] || q['v2-mcq-options'].length === 0));
+    if (mcqQuestions.length > 0) {
+      const mcqIds = mcqQuestions.map(q => q.id);
+      const { data: allOpts } = await sb.from('v2-mcq-options').select('*').in('question_id', mcqIds).order('sort_order');
+      if (allOpts && allOpts.length > 0) {
+        const optsByQ = {};
+        allOpts.forEach(o => { if (!optsByQ[o.question_id]) optsByQ[o.question_id] = []; optsByQ[o.question_id].push(o); });
+        mcqQuestions.forEach(q => { q['v2-mcq-options'] = optsByQ[q.id] || []; });
+      }
+    }
+
+    // Fallback: load from AI-generated data table for remaining empty MCQs
+    const stillEmpty = questions.filter(q => q.question_type === 'mcq' && (!q['v2-mcq-options'] || q['v2-mcq-options'].length === 0));
+    if (stillEmpty.length > 0 && assessmentId) {
+      const { data: aiData } = await sb.from('v2-ai-assessment-data')
+        .select('generated_json')
+        .eq('assessment_id', assessmentId)
+        .limit(1)
+        .single();
+      if (aiData && aiData.generated_json) {
+        const aiQuestions = aiData.generated_json.questions || [];
+        stillEmpty.forEach(q => {
+          const aiQ = aiQuestions.find(aq => (aq.prompt || '').trim() === (q.prompt || '').trim())
+                   || aiQuestions[q.question_number - 1];
+          if (aiQ) {
+            const aiOpts = aiQ.options || aiQ.choices || aiQ.answers || [];
+            q['v2-mcq-options'] = aiOpts.map((o, idx) => ({
+              id: null,
+              option_key: o.label || o.option_key || String.fromCharCode(65 + idx),
+              option_text: o.text || o.option_text || o.content || '',
+              is_correct: o.is_correct === true || o.correct === true,
+              sort_order: idx + 1
+            }));
+          }
+        });
+      }
+    }
+    const totalPts = questions.reduce((s, q) => s + (q.points || 0), 0);
+    document.getElementById('questionCount').textContent = questions.length + ' questions \u00b7 ' + totalPts + ' points';
+    document.getElementById('assessTotalPts').value = totalPts;
+
+    if (questions.length === 0 && sections.length === 0) {
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--ink-faint);font-size:12px;">No questions yet. Add your first question.</div>';
+      return;
+    }
+
+    let html = '';
+    let qNum = 0;
+    const sectionMap = {};
+    sections.forEach((s, i) => { sectionMap[s.id] = { ...s, idx: i + 1 }; });
+
+    // Group questions by section
+    const grouped = {};
+    questions.forEach(q => {
+      const sid = q.section_id || 'none';
+      if (!grouped[sid]) grouped[sid] = [];
+      grouped[sid].push(q);
+    });
+
+    // Render sections with their questions
+    for (const section of sections) {
+      html += '<div class="section-divider"><span class="section-num">' + String(sectionMap[section.id].idx).padStart(2, '0') + '</span>' +
+        '<input class="section-name-input" value="' + (section.name || '') + '" data-section-id="' + section.id + '" onchange="updateSection(this)">' +
+        '<span class="section-qcount">' + (grouped[section.id] || []).length + ' questions</span>' +
+        '<button class="add-section-btn" onclick="addSection()">+ Add section</button></div>';
+
+      (grouped[section.id] || []).forEach(q => {
+        qNum++;
+        html += renderQuestionItem(q, qNum);
+      });
+    }
+
+    // Unsectioned questions
+    if (grouped['none']) {
+      grouped['none'].forEach(q => {
+        qNum++;
+        html += renderQuestionItem(q, qNum);
+      });
+    }
+
+    container.innerHTML = html;
+  }
+
+  function renderQuestionItem(q, num) {
+    const typeClass = q.question_type || 'mcq';
+    const typeLabel = typeClass === 'mcq' ? 'MCQ' : typeClass === 'scenario' ? 'Scenario' : 'Coding';
+    const detailId = 'qDetail-' + q.id;
+    let preview = '';
+    if (q['v2-mcq-options'] && q['v2-mcq-options'].length) {
+      const correct = q['v2-mcq-options'].find(o => o.is_correct);
+      preview = correct ? 'Answer: ' + (correct.option_key || '') + '. ' + (correct.option_text || '') : '';
+    } else if (q['v2-rubric-criteria'] && q['v2-rubric-criteria'].length) {
+      preview = q['v2-rubric-criteria'].length + ' rubric criteria';
+    } else if (typeClass === 'coding') {
+      preview = q.coding_language || '';
+    }
+
+    // Build detail HTML
+    let detail = '';
+
+    // Competency
+    if (q.competency) {
+      detail += '<div style="margin-bottom:10px;"><span class="q-detail-label">Competency</span><div style="font-size:11.5px;color:var(--ink-mute);">' + q.competency + '</div></div>';
+    }
+
+    // MCQ options
+    if (typeClass === 'mcq' && q['v2-mcq-options'] && q['v2-mcq-options'].length) {
+      detail += '<div style="margin-bottom:10px;"><div class="q-detail-label">Options</div>';
+      q['v2-mcq-options'].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).forEach(o => {
+        const cls = o.is_correct ? 'correct' : 'wrong';
+        detail += '<div class="q-detail-option ' + cls + '">' +
+          '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:' + (o.is_correct ? 'var(--ok)' : 'var(--ink-faint)') + ';width:16px;">' + (o.option_key || '') + '</span>' +
+          '<span style="flex:1;color:' + (o.is_correct ? 'var(--ok)' : 'var(--ink-soft)') + ';">' + (o.option_text || '') + '</span>' +
+          (o.is_correct ? '<span style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ok);font-weight:600;">Correct</span>' : '') +
+          '</div>';
+      });
+      detail += '</div>';
+    }
+
+    // Scenario fields
+    if (typeClass === 'scenario') {
+      if (q.scenario_context) {
+        detail += '<div style="margin-bottom:10px;"><div class="q-detail-label">Scenario context</div><div style="padding:10px 12px;background:var(--paper-warm);border:1px solid var(--rule);font-size:11.5px;color:var(--ink-mute);line-height:1.6;">' + q.scenario_context + '</div></div>';
+      }
+      if (q['v2-rubric-criteria'] && q['v2-rubric-criteria'].length) {
+        detail += '<div style="margin-bottom:10px;"><div class="q-detail-label">Rubric criteria</div>';
+        q['v2-rubric-criteria'].forEach(c => {
+          detail += '<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--accent-soft);border:1px solid #e8c0a3;font-size:11px;margin-bottom:3px;"><span style="color:var(--accent);">' + c.name + '</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent);font-weight:600;">' + c.max_score + ' pts</span></div>';
+        });
+        detail += '</div>';
+      }
+      if (q.word_limit) {
+        detail += '<div style="margin-bottom:10px;font-size:11px;color:var(--ink-faint);">Word limit: <strong>' + q.word_limit + '</strong></div>';
+      }
+    }
+
+    // Coding fields
+    if (typeClass === 'coding') {
+      if (q.coding_language) detail += '<div style="margin-bottom:8px;"><span style="font-size:10px;padding:3px 8px;background:var(--ok-soft);border:1px solid #c5e0ce;color:var(--ok);font-weight:600;">' + q.coding_language + '</span></div>';
+      if (q.function_signature) {
+        detail += '<div style="margin-bottom:8px;"><div class="q-detail-label">Function signature</div><div class="q-detail-code" style="color:#a6e3a1;">' + q.function_signature + '</div></div>';
+      }
+      if (q.starter_code) {
+        detail += '<div style="margin-bottom:8px;"><div class="q-detail-label">Starter code</div><div class="q-detail-code">' + q.starter_code.replace(/</g, '&lt;') + '</div></div>';
+      }
+      const testCases = q['v2-test-cases'] || [];
+      const visibleTests = testCases.filter(t => !t.is_hidden);
+      const hiddenTests = testCases.filter(t => t.is_hidden);
+      if (visibleTests.length) {
+        detail += '<div style="margin-bottom:8px;"><div class="q-detail-label">Visible test cases</div>';
+        visibleTests.forEach(t => {
+          detail += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;padding:4px 8px;background:var(--paper-warm);border:1px solid var(--rule);margin-bottom:2px;"><span>' + (t.test_name || '') + '</span><span style="color:var(--ink-mute);">In: ' + (t.input_data || '') + '</span><span style="color:var(--ok);">Out: ' + (t.expected_output || '') + '</span></div>';
+        });
+        detail += '</div>';
+      }
+      if (hiddenTests.length) {
+        detail += '<div style="margin-bottom:8px;"><div class="q-detail-label">Hidden test cases</div>';
+        hiddenTests.forEach(t => {
+          detail += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;padding:4px 8px;background:var(--paper-warm);border:1px solid var(--rule);margin-bottom:2px;"><span>' + (t.test_name || '') + '</span><span style="color:var(--ink-mute);">In: ' + (t.input_data || '') + '</span><span style="color:var(--ok);">Out: ' + (t.expected_output || '') + '</span></div>';
+        });
+        detail += '</div>';
+      }
+      if (q.visible_test_points || q.hidden_test_points) {
+        detail += '<div style="font-size:10px;color:var(--ink-faint);margin-bottom:8px;">Points: ' + (q.visible_test_points || 0) + ' visible + ' + (q.hidden_test_points || 0) + ' hidden</div>';
+      }
+    }
+
+    // Explanation
+    if (q.explanation) {
+      detail += '<div style="margin-top:8px;padding:8px 12px;background:var(--edstellar-mist);border:1px solid #c5d5f5;font-size:11px;color:var(--edstellar);line-height:1.5;"><div class="q-detail-label" style="color:var(--edstellar);">Explanation</div>' + q.explanation + '</div>';
+    }
+
+    return '<div style="margin-bottom:8px;border:1px solid var(--rule);background:var(--paper);transition:border-color 0.15s;" data-question-id="' + q.id + '">' +
+      '<div class="question-item" style="border:none;margin-bottom:0;cursor:pointer;" onclick="toggleQuestionDetail(\'' + detailId + '\', this)">' +
+        '<div class="q-num">' + String(num).padStart(2, '0') + '</div>' +
+        '<div class="q-body">' +
+          '<div class="q-title">' + (q.prompt || '') + '</div>' +
+          '<div class="q-meta-row">' +
+            '<span class="q-type-tag ' + typeClass + '">' + typeLabel + '</span>' +
+            '<span class="q-points">' + (q.points || 0) + ' points</span>' +
+            (preview ? '<span style="font-size:10.5px;color:var(--ink-faint);margin-left:4px;">' + preview + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="q-actions">' +
+          '<span class="q-expand-icon" style="font-family:\'JetBrains Mono\',monospace;font-size:16px;color:var(--ink-faint);width:28px;height:28px;display:flex;align-items:center;justify-content:center;">+</span>' +
+          '<button class="q-act-btn" title="Edit" onclick="event.stopPropagation();editQuestion(\'' + q.id + '\')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>' +
+          '<button class="q-act-btn delete" title="Delete" onclick="event.stopPropagation();deleteQuestion(\'' + q.id + '\')"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="q-detail" id="' + detailId + '">' + detail + '</div>' +
+    '</div>';
+  }
+
+  // ============ SAVE ASSESSMENT ============
+  async function saveAssessment(status) {
+    const data = {
+      org_id: orgId,
+      title: document.getElementById('assessTitle').value,
+      description: document.getElementById('assessDesc').value,
+      duration_minutes: parseInt(document.getElementById('assessDuration').value) || 60,
+      passing_score: parseInt(document.getElementById('assessPassing').value) || 70,
+      total_points: parseInt(document.getElementById('assessTotalPts').value) || 100,
+      assessment_id: document.getElementById('assessId').value,
+      programme_id: document.getElementById('assessProgramme').value || null,
+      max_attempts: parseInt(document.getElementById('assessMaxAttempts').value) || 1,
+      negative_marking: document.getElementById('assessNegMarking').value,
+      auto_save_interval: parseInt(document.getElementById('assessAutoSave').value) || 30,
+      proctoring_enabled: document.getElementById('assessProctoring').value === 'enabled',
+      status: status || 'draft'
+    };
+
+    if (assessmentId) {
+      const { error } = await sb.from('v2-assessments').update(data).eq('id', assessmentId);
+      if (error) { showToast('Save failed: ' + error.message, 'error'); return; }
+    } else {
+      const { data: created, error } = await sb.from('v2-assessments').insert(data).select().single();
+      if (error) { showToast('Create failed: ' + error.message, 'error'); return; }
+      assessmentId = created.id;
+      window.history.replaceState({}, '', '?id=' + assessmentId);
+    }
+    showToast(status === 'published' ? 'Assessment published' : 'Assessment saved as draft', 'success');
+  }
+
+  // Save / Publish buttons
+  document.querySelector('.action-bar .btn-ghost:last-of-type')?.addEventListener('click', () => saveAssessment('draft'));
+  document.querySelector('.action-bar .btn-ok')?.addEventListener('click', () => saveAssessment('published'));
+
+  // ============ ADD QUESTION ============
+  const addQBtn = document.querySelector('#addQuestionModal .modal-footer .btn-primary');
+  addQBtn.addEventListener('click', async () => {
+    if (!assessmentId) {
+      await saveAssessment('draft');
+    }
+    const prompt = document.querySelector('#addQuestionModal .form-textarea').value;
+    const points = parseInt(document.querySelector('#addQuestionModal input[type="number"][value="3"]')?.value) || 3;
+    const sectionSel = document.getElementById('questionSection');
+    const sectionName = sectionSel.value;
+
+    // Get or create section
+    let sectionId = null;
+    const { data: existingSections } = await sb.from('v2-assessment-sections').select('id,name').eq('assessment_id', assessmentId);
+    const match = (existingSections || []).find(s => s.name === sectionName);
+    if (match) {
+      sectionId = match.id;
+    } else {
+      const { data: newSect } = await sb.from('v2-assessment-sections').insert({
+        assessment_id: assessmentId, name: sectionName, sort_order: (existingSections || []).length + 1
+      }).select().single();
+      if (newSect) sectionId = newSect.id;
+    }
+
+    // Get next sort order
+    const { count } = await sb.from('v2-questions').select('id', { count: 'exact', head: true }).eq('assessment_id', assessmentId);
+
+    const questionData = {
+      assessment_id: assessmentId,
+      section_id: sectionId,
+      prompt: prompt,
+      question_type: currentQuestionType,
+      points: points,
+      question_number: (count || 0) + 1,
+      sort_order: (count || 0) + 1
+    };
+
+    const { data: newQ, error: qErr } = await sb.from('v2-questions').insert(questionData).select().single();
+    if (qErr) { showToast('Error adding question: ' + qErr.message, 'error'); return; }
+
+    // Add MCQ options
+    if (currentQuestionType === 'mcq' && newQ) {
+      const optionInputs = document.querySelectorAll('#addQuestionModal .option-input');
+      const correctRadios = document.querySelectorAll('#addQuestionModal input[name="correct"]');
+      const options = [];
+      optionInputs.forEach((inp, i) => {
+        if (inp.value.trim()) {
+          options.push({
+            question_id: newQ.id,
+            option_key: String.fromCharCode(65 + i),
+            option_text: inp.value.trim(),
+            is_correct: correctRadios[i]?.checked || false,
+            sort_order: i + 1
+          });
+        }
+      });
+      if (options.length) await sb.from('v2-mcq-options').insert(options);
+    }
+
+    // Add rubric criteria for scenario
+    if (currentQuestionType === 'scenario' && newQ) {
+      const rubricRows = document.querySelectorAll('#rubricCriteria .rubric-row');
+      const criteria = [];
+      rubricRows.forEach((row, i) => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs[0]?.value.trim()) {
+          criteria.push({
+            question_id: newQ.id,
+            name: inputs[0].value.trim(),
+            max_score: parseInt(inputs[1]?.value) || 0,
+            sort_order: i + 1
+          });
+        }
+      });
+      if (criteria.length) await sb.from('v2-rubric-criteria').insert(criteria);
+    }
+
+    // Save coding fields and test cases
+    if (currentQuestionType === 'coding' && newQ) {
+      // Update question with coding-specific fields
+      const codingLang = document.querySelector('#codingFields .form-select')?.value || 'Python 3.11';
+      const funcSig = document.querySelector('#codingFields .form-input.mono')?.value || '';
+      const starterCode = document.querySelector('#codingFields .form-textarea.mono')?.value || '';
+      const visiblePts = parseInt(document.querySelector('#codingFields input[value="6"]')?.value) || 6;
+      const hiddenPts = parseInt(document.querySelector('#codingFields input[value="14"]')?.value) || 14;
+
+      await sb.from('v2-questions').update({
+        coding_language: codingLang,
+        function_signature: funcSig,
+        starter_code: starterCode,
+        visible_test_points: visiblePts,
+        hidden_test_points: hiddenPts
+      }).eq('id', newQ.id);
+
+      // Save visible test cases
+      const visibleRows = document.querySelectorAll('#visibleTests > div');
+      const testCases = [];
+      visibleRows.forEach((row, i) => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs[0]?.value.trim()) {
+          testCases.push({
+            question_id: newQ.id,
+            test_name: inputs[0].value.trim(),
+            input_data: inputs[1]?.value.trim() || '',
+            expected_output: inputs[2]?.value.trim() || '',
+            is_hidden: false,
+            sort_order: i + 1
+          });
+        }
+      });
+
+      // Save hidden test cases
+      const hiddenRows = document.querySelectorAll('#hiddenTests > div');
+      hiddenRows.forEach((row, i) => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs[0]?.value.trim()) {
+          testCases.push({
+            question_id: newQ.id,
+            test_name: inputs[0].value.trim(),
+            input_data: inputs[1]?.value.trim() || '',
+            expected_output: inputs[2]?.value.trim() || '',
+            is_hidden: true,
+            sort_order: visibleRows.length + i + 1
+          });
+        }
+      });
+
+      if (testCases.length) {
+        const { error: tcErr } = await sb.from('v2-test-cases').insert(testCases);
+        if (tcErr) console.warn('Test case insert error:', tcErr.message);
+      }
+    }
+
+    document.getElementById('addQuestionModal').classList.remove('visible');
+    showToast('Question added', 'success');
+    await loadQuestions();
+  });
+
+  // ============ DELETE QUESTION ============
+  window.toggleQuestionDetail = function(detailId, headerEl) {
+    const detail = document.getElementById(detailId);
+    const icon = headerEl.querySelector('.q-expand-icon');
+    if (detail.style.display === 'none' || !detail.style.display || detail.style.display === '') {
+      // Check if it was hidden by CSS class default
+      const isVisible = detail.offsetHeight > 0;
+      if (isVisible) {
+        detail.style.display = 'none';
+        if (icon) icon.textContent = '+';
+      } else {
+        detail.style.display = 'block';
+        if (icon) icon.textContent = '\u2212';
+      }
+    } else {
+      detail.style.display = 'none';
+      if (icon) icon.textContent = '+';
+    }
+  };
+
+  // ============ EDIT QUESTION ============
+  window.editQuestion = async function(qId) {
+    // Fetch question with all related data
+    const { data: q, error } = await sb.from('v2-questions')
+      .select('*, "v2-mcq-options"(*), "v2-rubric-criteria"(*), "v2-test-cases"(*)')
+      .eq('id', qId).single();
+    if (error || !q) { showToast('Could not load question', 'error'); return; }
+
+    const qType = q.question_type || 'mcq';
+    document.getElementById('editQId').value = q.id;
+    document.getElementById('editQType').value = qType;
+    document.getElementById('editQPrompt').value = q.prompt || '';
+    document.getElementById('editQPoints').value = q.points || 3;
+    document.getElementById('editQCompetency').value = q.competency || '';
+    document.getElementById('editQExplanation').value = q.explanation || '';
+
+    // Type display
+    const typeLabels = { mcq: 'MCQ — Multiple Choice', scenario: 'Scenario / Essay', coding: 'Coding' };
+    document.getElementById('editQTypeDisplay').innerHTML = '<span class="q-type-tag ' + qType + '">' + (typeLabels[qType] || qType) + '</span>';
+
+    // Hide all type-specific fields
+    document.getElementById('editMcqFields').style.display = 'none';
+    document.getElementById('editScenarioFields').style.display = 'none';
+    document.getElementById('editCodingFields').style.display = 'none';
+
+    // MCQ
+    if (qType === 'mcq') {
+      document.getElementById('editMcqFields').style.display = '';
+
+      // Step 1: Try nested select
+      let opts = (q['v2-mcq-options'] || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+      // Step 2: Fallback — direct query to v2-mcq-options
+      if (opts.length === 0) {
+        const { data: mcqOpts } = await sb.from('v2-mcq-options')
+          .select('*').eq('question_id', qId).order('sort_order');
+        opts = mcqOpts || [];
+      }
+
+      // Step 3: Fallback — load from AI-generated data table
+      if (opts.length === 0 && q.assessment_id) {
+        const { data: aiData } = await sb.from('v2-ai-assessment-data')
+          .select('generated_json')
+          .eq('assessment_id', q.assessment_id)
+          .limit(1)
+          .single();
+        if (aiData && aiData.generated_json) {
+          const gen = aiData.generated_json;
+          const aiQuestions = gen.questions || [];
+          // Match by prompt text or question_number
+          const aiQ = aiQuestions.find(aq =>
+            (aq.prompt || '').trim() === (q.prompt || '').trim()
+          ) || aiQuestions[q.question_number - 1];
+          if (aiQ) {
+            const aiOpts = aiQ.options || aiQ.choices || aiQ.answers || [];
+            opts = aiOpts.map((o, idx) => ({
+              id: null,
+              option_key: o.label || o.option_key || String.fromCharCode(65 + idx),
+              option_text: o.text || o.option_text || o.content || '',
+              is_correct: o.is_correct === true || o.correct === true,
+              sort_order: idx + 1
+            }));
+            // Try to insert these options into v2-mcq-options for future loads
+            if (opts.length > 0) {
+              const insertOpts = opts.map(o => ({
+                question_id: qId,
+                option_key: o.option_key,
+                option_text: o.option_text,
+                is_correct: o.is_correct,
+                sort_order: o.sort_order
+              }));
+              const { data: inserted } = await sb.from('v2-mcq-options').insert(insertOpts).select();
+              if (inserted && inserted.length > 0) {
+                opts = inserted;
+              }
+            }
+          }
+        }
+      }
+
+      const labels = ['A', 'B', 'C', 'D'];
+      let optHtml = '';
+      for (let i = 0; i < 4; i++) {
+        const o = opts[i] || {};
+        const label = o.option_key || labels[i];
+        const isCorrect = !!o.is_correct;
+        optHtml += '<div class="option-row">' +
+          '<div class="option-key' + (isCorrect ? ' correct' : '') + '">' + label + '</div>' +
+          '<input class="option-input edit-opt-text" type="text" value="' + (o.option_text || '').replace(/"/g, '&quot;') + '" data-opt-id="' + (o.id || '') + '" data-label="' + label + '">' +
+          '<label class="option-correct"><input type="radio" name="editCorrect" value="' + label + '"' + (isCorrect ? ' checked' : '') + '> Correct</label>' +
+          '</div>';
+      }
+      document.getElementById('editMcqOptions').innerHTML = optHtml;
+    }
+
+    // Scenario
+    if (qType === 'scenario') {
+      document.getElementById('editScenarioFields').style.display = '';
+      document.getElementById('editScenarioContext').value = q.scenario_context || '';
+      document.getElementById('editWordLimit').value = q.word_limit || 500;
+      const criteria = (q['v2-rubric-criteria'] || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      let rcHtml = '';
+      criteria.forEach(c => {
+        rcHtml += '<div class="rubric-row" data-crit-id="' + c.id + '">' +
+          '<input class="form-input edit-crit-name" type="text" value="' + (c.name || '').replace(/"/g, '&quot;') + '" style="margin-bottom:0;">' +
+          '<input class="form-input edit-crit-pts" type="number" value="' + (c.max_score || 0) + '" style="width:70px;margin-bottom:0;text-align:center;">' +
+          '<button class="rubric-remove" title="Remove" onclick="this.parentElement.remove()">&times;</button>' +
+          '</div>';
+      });
+      document.getElementById('editRubricCriteria').innerHTML = rcHtml;
+    }
+
+    // Coding
+    if (qType === 'coding') {
+      document.getElementById('editCodingFields').style.display = '';
+      document.getElementById('editCodingLang').value = q.coding_language || 'Python 3.11';
+      document.getElementById('editFuncSig').value = q.function_signature || '';
+      document.getElementById('editStarterCode').value = q.starter_code || '';
+    }
+
+    document.getElementById('editQuestionModal').classList.add('visible');
+  };
+
+  window.addEditRubricRow = function() {
+    const container = document.getElementById('editRubricCriteria');
+    const row = document.createElement('div');
+    row.className = 'rubric-row';
+    row.dataset.critId = 'new';
+    row.innerHTML = '<input class="form-input edit-crit-name" type="text" placeholder="Criterion name" style="margin-bottom:0;">' +
+      '<input class="form-input edit-crit-pts" type="number" placeholder="Pts" style="width:70px;margin-bottom:0;text-align:center;">' +
+      '<button class="rubric-remove" title="Remove" onclick="this.parentElement.remove()">&times;</button>';
+    container.appendChild(row);
+  };
+
+  window.saveEditedQuestion = async function() {
+    const qId = document.getElementById('editQId').value;
+    const qType = document.getElementById('editQType').value;
+
+    const updateData = {
+      prompt: document.getElementById('editQPrompt').value,
+      points: parseInt(document.getElementById('editQPoints').value) || 3,
+      competency: document.getElementById('editQCompetency').value,
+      explanation: document.getElementById('editQExplanation').value
+    };
+
+    if (qType === 'scenario') {
+      updateData.scenario_context = document.getElementById('editScenarioContext').value;
+      updateData.word_limit = parseInt(document.getElementById('editWordLimit').value) || 500;
+    }
+    if (qType === 'coding') {
+      updateData.coding_language = document.getElementById('editCodingLang').value;
+      updateData.function_signature = document.getElementById('editFuncSig').value;
+      updateData.starter_code = document.getElementById('editStarterCode').value;
+    }
+
+    const { error: qErr } = await sb.from('v2-questions').update(updateData).eq('id', qId);
+    if (qErr) { showToast('Save failed: ' + qErr.message, 'error'); return; }
+
+    // Update MCQ options
+    if (qType === 'mcq') {
+      const correctLabel = document.querySelector('input[name="editCorrect"]:checked')?.value || 'A';
+      const optInputs = document.querySelectorAll('#editMcqOptions .edit-opt-text');
+      const newOpts = [];
+      for (const inp of optInputs) {
+        const optId = inp.dataset.optId;
+        const label = inp.dataset.label;
+        const isCorrect = label === correctLabel;
+        if (optId) {
+          await sb.from('v2-mcq-options').update({
+            option_text: inp.value,
+            is_correct: isCorrect
+          }).eq('id', optId);
+        } else if (inp.value.trim()) {
+          // Option doesn't exist in DB yet — create it
+          newOpts.push({
+            question_id: qId,
+            option_key: label,
+            option_text: inp.value.trim(),
+            is_correct: isCorrect,
+            sort_order: ['A','B','C','D'].indexOf(label) + 1
+          });
+        }
+      }
+      if (newOpts.length) await sb.from('v2-mcq-options').insert(newOpts);
+    }
+
+    // Update rubric criteria for scenario
+    if (qType === 'scenario') {
+      // Delete existing and re-insert
+      await sb.from('v2-rubric-criteria').delete().eq('question_id', qId);
+      const rows = document.querySelectorAll('#editRubricCriteria .rubric-row');
+      const criteria = [];
+      rows.forEach((row, i) => {
+        const name = row.querySelector('.edit-crit-name')?.value.trim();
+        const pts = parseInt(row.querySelector('.edit-crit-pts')?.value) || 0;
+        if (name) {
+          criteria.push({ question_id: qId, name, max_score: pts, sort_order: i + 1 });
+        }
+      });
+      if (criteria.length) await sb.from('v2-rubric-criteria').insert(criteria);
+    }
+
+    document.getElementById('editQuestionModal').classList.remove('visible');
+    showToast('Question updated', 'success');
+    await loadQuestions();
+  };
+
+  window.deleteQuestion = async function(qId) {
+    const { error } = await sb.from('v2-questions').delete().eq('id', qId);
+    if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
+    showToast('Question deleted', 'success');
+    await loadQuestions();
+  };
+
+  // ============ ADD/UPDATE SECTION ============
+  window.addSection = async function() {
+    if (!assessmentId) { await saveAssessment('draft'); }
+    const name = prompt('Section name:');
+    if (!name) return;
+    const { count } = await sb.from('v2-assessment-sections').select('id', { count: 'exact', head: true }).eq('assessment_id', assessmentId);
+    await sb.from('v2-assessment-sections').insert({ assessment_id: assessmentId, name, sort_order: (count || 0) + 1 });
+    await loadQuestions();
+    // Update section dropdown in add question modal
+    const { data: sects } = await sb.from('v2-assessment-sections').select('*').eq('assessment_id', assessmentId);
+    const sel = document.getElementById('questionSection');
+    sel.innerHTML = (sects || []).map(s => '<option>' + s.name + '</option>').join('');
+  };
+
+  window.updateSection = async function(input) {
+    const sectionId = input.dataset.sectionId;
+    await sb.from('v2-assessment-sections').update({ name: input.value }).eq('id', sectionId);
+  };
+
+  // ============ ASSIGN MODAL ============
+  let emailService = null;
+
+  // Load email service config
+  async function initEmailService() {
+    if (emailService) return;
+    const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+    let webAppUrl = '';
+    (settingsRows || []).forEach(row => {
+      let val = row.value;
+      if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+      if (row.key === 'email_webapp_url') webAppUrl = val;
+    });
+    if (!webAppUrl) {
+      // Fallback to hardcoded URL
+      webAppUrl = 'https://script.google.com/macros/s/AKfycbzS2fUP8m6TMccSJZnMMRRbqvSuY0NZO5Dxy3_16SWl29wWXBrrqaVwPzF_AvZZCXRT/exec';
+    }
+    emailService = new EmailService(webAppUrl);
+  }
+
+  function generateOtp() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  window.openAssignModal = async function() {
+    if (!assessmentId) { showToast('Save the assessment first', 'warn'); return; }
+    // Check if assessment is published
+    const { data: assess } = await sb.from('v2-assessments').select('status').eq('id', assessmentId).single();
+    if (!assess || assess.status !== 'published') {
+      showToast('Publish the assessment before assigning to participants', 'warn');
+      return;
+    }
+    document.getElementById('assignModal').classList.add('visible');
+  };
+
+  async function loadAssignEmployees() {
+    const { data } = await sb.from('v2-users').select('id, first_name, last_name, email, "v2-departments"(name)').eq('org_id', orgId).eq('role', 'employee');
+    const list = document.getElementById('assignEmployeeList');
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">No participants found</div>';
+      return;
+    }
+
+    // Check who is already assigned to this assessment
+    let alreadyAssigned = new Set();
+    if (assessmentId) {
+      const { data: existing } = await sb.from('v2-assignments').select('user_id').eq('assessment_id', assessmentId);
+      (existing || []).forEach(a => alreadyAssigned.add(a.user_id));
+    }
+
+    const available = data.filter(u => !alreadyAssigned.has(u.id));
+    const assigned = data.filter(u => alreadyAssigned.has(u.id));
+
+    document.getElementById('assignSelectAllLabel').textContent = 'Select all (' + available.length + ' available)';
+
+    let html = '';
+    // Show available participants
+    available.forEach(u => {
+      const dept = u['v2-departments'] ? u['v2-departments'].name : '';
+      html += '<div class="assign-row"><input type="checkbox" data-user-id="' + u.id + '" data-email="' + (u.email || '') + '" data-name="' + (u.first_name || '') + ' ' + (u.last_name || '') + '"><span class="assign-name">' + u.first_name + ' ' + u.last_name + '</span><span class="assign-dept">' + dept + '</span></div>';
+    });
+
+    if (available.length === 0 && assigned.length > 0) {
+      html = '<div style="padding:12px 14px;font-size:12px;color:var(--ok);background:var(--ok-soft);border-bottom:1px solid #c5e0ce;">All participants are already assigned</div>';
+    }
+
+    list.innerHTML = html;
+
+    // Build assigned report with delete buttons
+    const reportSection = document.getElementById('assignedReport');
+    const reportList = document.getElementById('assignedReportList');
+    if (assigned.length > 0) {
+      // Get assignment IDs for delete
+      const { data: assignmentRows } = await sb.from('v2-assignments')
+        .select('id, user_id, status, due_date')
+        .eq('assessment_id', assessmentId);
+      const assignMap = {};
+      (assignmentRows || []).forEach(a => { assignMap[a.user_id] = a; });
+
+      reportSection.style.display = '';
+      reportList.innerHTML = assigned.map(u => {
+        const a = assignMap[u.id] || {};
+        const dept = u['v2-departments'] ? u['v2-departments'].name : '';
+        const statusLabel = a.status ? a.status.charAt(0).toUpperCase() + a.status.slice(1) : 'Assigned';
+        const statusColor = a.status === 'in_progress' ? 'var(--warn)' : a.status === 'submitted' || a.status === 'completed' ? 'var(--ok)' : 'var(--ink-mute)';
+        return '<div class="assign-row" style="justify-content:space-between;">' +
+          '<div style="display:flex;align-items:center;gap:8px;">' +
+            '<span class="assign-name">' + u.first_name + ' ' + u.last_name + '</span>' +
+            '<span style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:' + statusColor + ';font-weight:600;">' + statusLabel + '</span>' +
+          '</div>' +
+          '<div style="display:flex;gap:4px;align-items:center;">' +
+            '<span class="assign-dept">' + (u.email || '') + '</span>' +
+            '<button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:9px;" onclick="removeAssignment(\'' + (a.id || '') + '\', \'' + u.id + '\', \'' + ((u.first_name || '') + ' ' + (u.last_name || '')).trim().replace(/'/g, "\\'") + '\')">' +
+              '<svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>' +
+            '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } else {
+      reportSection.style.display = 'none';
+    }
+
+    document.getElementById('assignSelectAll').addEventListener('change', function() {
+      list.querySelectorAll('input[type="checkbox"]:not(:disabled)').forEach(cb => { cb.checked = this.checked; });
+    });
+  }
+
+  // ============ REMOVE ASSIGNMENT ============
+  window.removeAssignment = async function(assignmentId, userId, name) {
+    if (!confirm('Remove assignment for "' + name + '"?\n\nThis will delete the assignment, OTP, and any related sessions/responses.')) return;
+    try {
+      // Delete related sessions and responses
+      const { data: sessions } = await sb.from('v2-sessions').select('id').eq('assignment_id', assignmentId);
+      const sessIds = (sessions || []).map(s => s.id);
+      if (sessIds.length) {
+        await sb.from('v2-responses').delete().in('session_id', sessIds);
+        await sb.from('v2-gradings').delete().in('session_id', sessIds);
+        await sb.from('v2-grading-queue').delete().in('session_id', sessIds);
+        await sb.from('v2-integrity-logs').delete().in('session_id', sessIds);
+        await sb.from('v2-sessions').delete().eq('assignment_id', assignmentId);
+      }
+      await sb.from('v2-assessment-otp').delete().eq('assignment_id', assignmentId);
+      await sb.from('v2-assignments').delete().eq('id', assignmentId);
+      showToast('Assignment removed for ' + name, 'success');
+      await loadAssignEmployees(); // Refresh the list
+    } catch (err) {
+      showToast('Remove failed: ' + err.message, 'error');
+    }
+  };
+
+  // Assign submit — generate OTP + send email
+  document.querySelector('#assignModal .modal-footer .btn-primary').addEventListener('click', async () => {
+    if (!assessmentId) { showToast('Save the assessment first', 'warn'); return; }
+    const dueDate = document.getElementById('assignDueDate').value;
+    const checked = document.querySelectorAll('#assignEmployeeList input[type="checkbox"]:checked');
+    if (checked.length === 0) { showToast('Select at least one participant', 'warn'); return; }
+
+    const btn = document.querySelector('#assignModal .modal-footer .btn-primary');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending invites...';
+
+    try {
+      await initEmailService();
+      const assessTitle = document.getElementById('assessTitle').value || 'Assessment';
+      const baseUrl = window.location.origin + window.location.pathname.replace('admin_assessment_editor.html', '');
+      let sentCount = 0;
+
+      for (const cb of checked) {
+        const userId = cb.dataset.userId;
+        const email = cb.dataset.email;
+        const name = cb.dataset.name;
+        const otpCode = generateOtp();
+
+        // Insert assignment
+        const { data: assignment, error: assignErr } = await sb.from('v2-assignments').insert({
+          assessment_id: assessmentId,
+          user_id: userId,
+          due_date: dueDate || null,
+          status: 'assigned'
+        }).select().single();
+
+        if (assignErr) { console.warn('Assignment failed for ' + email + ':', assignErr.message); continue; }
+
+        // Insert OTP
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 72); // 72 hours to use OTP
+        await sb.from('v2-assessment-otp').insert({
+          assignment_id: assignment.id,
+          user_id: userId,
+          assessment_id: assessmentId,
+          org_id: orgId,
+          otp_code: otpCode,
+          expires_at: expiresAt.toISOString()
+        });
+
+        // Send email with OTP
+        const assessmentLink = baseUrl + 'Participant Live Assessment.html?assignment=' + assignment.id;
+        const dueDateFormatted = dueDate ? new Date(dueDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+
+        try {
+          await emailService.sendOtp(email, name, otpCode, assessTitle, assessmentLink, dueDateFormatted);
+          sentCount++;
+        } catch (emailErr) {
+          console.warn('Email failed for ' + email + ':', emailErr.message);
+          sentCount++; // Still count as assigned even if email fails
+        }
+      }
+
+      await sb.from('v2-activity-log').insert({
+        org_id: orgId, action: 'assessment_assigned',
+        message: '<strong>' + sentCount + ' participants assigned</strong> with OTP for ' + assessTitle
+      });
+
+      document.getElementById('assignModal').classList.remove('visible');
+      showToast(sentCount + ' participants assigned — OTP emails sent', 'success');
+
+    } catch (err) {
+      showToast('Assignment failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Assign & Send OTP';
+    }
+  });
+
+  // ============ ASSESSMENT RUBRIC / SECTION WEIGHTS ============
+  async function loadRubric() {
+    const container = document.getElementById('rubricTableBody');
+    if (!assessmentId) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">Save the assessment first to add rubric items.</div>';
+      return;
+    }
+
+    const { data, error } = await sb.from('v2-assessment-rubric').select('*').eq('assessment_id', assessmentId).order('sort_order');
+    if (error) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--bad);font-size:12px;">Error: ' + error.message + '</div>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">No rubric items yet. Click "+ Add section rubric item" below.</div>';
+      return;
+    }
+
+    const totalPts = data.reduce((s, r) => s + (r.max_points || 0), 0);
+    container.innerHTML = data.map(r => {
+      const weight = totalPts > 0 ? Math.round((r.max_points || 0) / totalPts * 100) : 0;
+      return '<div style="display:grid;grid-template-columns:1fr 100px 100px 40px;gap:0;padding:10px 16px;border-bottom:1px solid var(--rule-soft);align-items:center;" data-rubric-id="' + r.id + '">' +
+        '<input class="form-input rubric-name" type="text" value="' + (r.section_name || '') + '" style="margin-bottom:0;border:none;background:transparent;padding:0;" onchange="updateRubricItem(this)">' +
+        '<input class="form-input rubric-pts" type="number" value="' + (r.max_points || 0) + '" style="margin-bottom:0;width:70px;text-align:center;margin:0 auto;" onchange="updateRubricItem(this)">' +
+        '<span style="font-size:12px;color:var(--ink-faint);text-align:center;">' + weight + '%</span>' +
+        '<button style="background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:16px;" onclick="deleteRubricItem(\'' + r.id + '\')" title="Remove">&times;</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  window.addRubricItem = async function() {
+    if (!assessmentId) {
+      await saveAssessment('draft');
+    }
+    if (!assessmentId) { showToast('Save the assessment first', 'warn'); return; }
+
+    const { count } = await sb.from('v2-assessment-rubric').select('id', { count: 'exact', head: true }).eq('assessment_id', assessmentId);
+    const { error } = await sb.from('v2-assessment-rubric').insert({
+      assessment_id: assessmentId,
+      section_name: 'New section',
+      max_points: 20,
+      sort_order: (count || 0) + 1
+    });
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+    showToast('Rubric item added', 'success');
+    await loadRubric();
+  };
+
+  window.updateRubricItem = async function(input) {
+    const row = input.closest('[data-rubric-id]');
+    const rubricId = row.dataset.rubricId;
+    const name = row.querySelector('.rubric-name').value;
+    const pts = parseInt(row.querySelector('.rubric-pts').value) || 0;
+
+    // Recalculate weight for all rows
+    const allPtsInputs = document.querySelectorAll('#rubricTableBody .rubric-pts');
+    let totalPts = 0;
+    allPtsInputs.forEach(inp => { totalPts += parseInt(inp.value) || 0; });
+    const weightPct = totalPts > 0 ? Math.round(pts / totalPts * 100) : 0;
+
+    const { error } = await sb.from('v2-assessment-rubric').update({
+      section_name: name,
+      max_points: pts,
+      weight_pct: weightPct
+    }).eq('id', rubricId);
+
+    if (error) { showToast('Update failed: ' + error.message, 'error'); return; }
+    await loadRubric(); // Refresh weights
+  };
+
+  window.deleteRubricItem = async function(rubricId) {
+    const { error } = await sb.from('v2-assessment-rubric').delete().eq('id', rubricId);
+    if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
+    showToast('Rubric item removed', 'success');
+    await loadRubric();
+  };
+
+  // ============ ADD TEST CASE ROW ============
+  window.addTestRow = function(containerId) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;margin-bottom:6px;';
+    row.innerHTML = '<input class="form-input" type="text" placeholder="Test name" style="margin-bottom:0;font-size:11px;">' +
+      '<input class="form-input" type="text" placeholder="Input" style="margin-bottom:0;font-size:11px;">' +
+      '<input class="form-input" type="text" placeholder="Expected" style="margin-bottom:0;font-size:11px;">' +
+      '<button class="rubric-remove" onclick="this.parentElement.remove()">&times;</button>';
+    container.appendChild(row);
+  };
+
+  // ============ ADD RUBRIC ROW ============
+  window.addRubricRow = function() {
+    const container = document.getElementById('rubricCriteria');
+    const row = document.createElement('div');
+    row.className = 'rubric-row';
+    row.innerHTML = '<input class="form-input" type="text" placeholder="Criterion name" style="margin-bottom:0;">' +
+      '<input class="form-input" type="number" placeholder="Pts" style="width:70px;margin-bottom:0;text-align:center;">' +
+      '<button class="rubric-remove" title="Remove" onclick="this.parentElement.remove()">&times;</button>';
+    container.appendChild(row);
+  };
+
+  document.querySelectorAll('.rubric-remove').forEach(btn => {
+    btn.addEventListener('click', () => btn.parentElement.remove());
+  });
+
+  // ============ SET DUE DATE DEFAULT ============
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 7);
+  document.getElementById('assignDueDate').value = tomorrow.toISOString().split('T')[0];
+
+  // ============ INITIAL LOAD ============
+  await loadProgrammes();
+  await loadAssessment();
+  await loadRubric();
+  await loadAssignEmployees();
+
+  // Auto-open assign modal if ?assign=1 in URL
+  if (params.get('assign') === '1' && assessmentId) {
+    openAssignModal();
+  }
+})();
+</script>
+
+</body>
+</html>

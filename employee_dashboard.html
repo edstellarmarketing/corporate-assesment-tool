@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar — Employee Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b;
+    --ink-soft: #2a3a52;
+    --ink-mute: #5a6a82;
+    --ink-faint: #95a0b3;
+    --paper: #fbfaf7;
+    --paper-warm: #f5f2ea;
+    --rule: #e6e1d3;
+    --rule-soft: #efece1;
+    --edstellar: #1d4ed8;
+    --edstellar-deep: #0a2472;
+    --edstellar-mist: #e8eeff;
+    --accent: #c8410b;
+    --accent-soft: #fdeee0;
+    --ok: #1f6f43;
+    --ok-soft: #e3f1e7;
+    --warn: #8a5a00;
+    --warn-soft: #fdf3d8;
+    --bad: #a8290c;
+    --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(14, 26, 43, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #000;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; flex-shrink: 0; }
+  .brand-logo-text { color: var(--ink); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255, 255, 255, 0.18); flex-shrink: 0; }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+
+  .topbar-user { display: flex; align-items: center; gap: 14px; }
+  .user-info { text-align: right; }
+  .user-name { font-size: 12.5px; font-weight: 500; color: var(--paper); }
+  .user-role { font-size: 10px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.08em; }
+  .user-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500;
+  }
+  .top-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: var(--paper);
+    padding: 6px 14px;
+    font-size: 11px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+
+  /* ============ MAIN CONTENT ============ */
+  .main { max-width: 960px; margin: 0 auto; padding: 32px 28px 60px; }
+
+  /* Welcome header */
+  .welcome-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--rule); }
+  .welcome-greeting { font-size: 12px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; margin-bottom: 4px; }
+  .welcome-name { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; color: var(--ink); letter-spacing: -0.015em; }
+  .welcome-meta { font-size: 12.5px; color: var(--ink-mute); margin-top: 4px; }
+
+  /* Quick stats */
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin-bottom: 36px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+  .qs-cell { padding: 18px 20px; border-right: 1px solid var(--rule); }
+  .qs-cell:last-child { border-right: none; }
+  .qs-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 8px; }
+  .qs-value { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; color: var(--ink); line-height: 1; }
+  .qs-value .unit { font-size: 13px; color: var(--ink-faint); margin-left: 4px; }
+
+  /* ============ SECTION ============ */
+  .sect-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin: 36px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rule);
+  }
+  .sect-head h2 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .sect-head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-right: 8px; font-weight: 600; }
+  .sect-head .meta { font-size: 11px; color: var(--ink-mute); }
+
+  /* ============ ASSESSMENT CARDS ============ */
+  .assessment-card {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    padding: 22px 24px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+    transition: border-color 0.15s;
+  }
+  .assessment-card:hover { border-color: var(--ink-faint); }
+  .ac-title { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .ac-details { display: flex; gap: 18px; font-size: 11.5px; color: var(--ink-mute); }
+  .ac-detail { display: flex; align-items: center; gap: 5px; }
+  .ac-detail svg { color: var(--ink-faint); }
+  .ac-status {
+    display: inline-block;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 10px; font-weight: 600;
+    border: 1px solid;
+  }
+  .ac-status.pending { background: var(--warn-soft); color: var(--warn); border-color: #ead8a3; }
+  .ac-status.overdue { background: var(--bad-soft); color: var(--bad); border-color: #e8c0b6; }
+
+  .btn {
+    padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--ink); background: var(--paper); color: var(--ink);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+
+  /* ============ COMPLETED TABLE ============ */
+  .result-table {
+    width: 100%; border-collapse: collapse; font-size: 12.5px; border: 1px solid var(--rule);
+  }
+  .result-table thead th {
+    background: var(--paper-warm); text-align: left; padding: 11px 14px;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-mute); font-weight: 600; border-bottom: 1px solid var(--rule);
+  }
+  .result-table tbody td {
+    padding: 13px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle;
+  }
+  .result-table tbody tr:last-child td { border-bottom: none; }
+  .result-table tbody tr:hover { background: #fdfcf9; }
+
+  .score-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+    padding: 3px 8px; border: 1px solid var(--rule); display: inline-block;
+  }
+  .score-badge.pass { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .score-badge.fail { background: var(--bad-soft); color: var(--bad); border-color: #e8c0b6; }
+
+  .status-tag {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 3px 10px; font-weight: 600; display: inline-block; border: 1px solid;
+  }
+  .status-tag.graded { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .status-tag.grading { background: var(--warn-soft); color: var(--warn); border-color: #ead8a3; }
+
+  /* ============ CERTIFICATES ============ */
+  .cert-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .cert-card {
+    border: 1px solid var(--rule); background: var(--paper); padding: 20px;
+    text-align: center; transition: border-color 0.15s;
+  }
+  .cert-card:hover { border-color: var(--ink-faint); }
+  .cert-icon {
+    width: 48px; height: 48px; margin: 0 auto 12px;
+    background: var(--ok-soft); border: 1px solid #c5e0ce; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ok);
+  }
+  .cert-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .cert-date { font-size: 11px; color: var(--ink-mute); margin-bottom: 12px; }
+  .cert-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ok); font-weight: 500; margin-bottom: 12px; }
+
+  /* ============ EMPTY STATE ============ */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--ink-mute); }
+  .empty-state svg { color: var(--ink-faint); margin-bottom: 12px; }
+  .empty-state p { font-size: 13px; }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap">
+      <img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;">
+    </div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Assessment Platform</span>
+  </div>
+  <div class="topbar-user" style="display:flex;gap:14px;align-items:center;">
+    <button class="top-btn" id="logoutBtn" onclick="signOut()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      Logout
+    </button>
+    <div class="user-avatar" id="userAvatar">--</div>
+  </div>
+</div>
+
+<!-- ============ MAIN CONTENT ============ -->
+<div class="main">
+
+  <!-- Welcome -->
+  <div class="welcome-header">
+    <div class="welcome-greeting">Welcome back</div>
+    <h1 class="welcome-name serif" id="welcomeName">--</h1>
+    <p class="welcome-meta" id="welcomeMeta">Loading profile...</p>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="quick-stats" id="quickStats">
+    <div class="qs-cell">
+      <div class="qs-label">Assigned</div>
+      <div class="qs-value" id="statAssigned">--</div>
+    </div>
+    <div class="qs-cell">
+      <div class="qs-label">Completed</div>
+      <div class="qs-value" id="statCompleted">--</div>
+    </div>
+    <div class="qs-cell">
+      <div class="qs-label">Average score</div>
+      <div class="qs-value" id="statAvgScore">--</div>
+    </div>
+  </div>
+
+  <!-- ============ ASSIGNED ASSESSMENTS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">01</span>Assigned assessments</h2>
+    <span class="meta" id="assignedMeta">-- pending</span>
+  </div>
+  <div id="assignedList"></div>
+
+  <!-- ============ COMPLETED ASSESSMENTS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">02</span>Completed assessments</h2>
+    <span class="meta" id="completedMeta">-- completed</span>
+  </div>
+  <div id="completedList"></div>
+
+  <!-- ============ CERTIFICATES ============ -->
+  <div class="sect-head">
+    <h2><span class="num">03</span>My certificates</h2>
+    <span class="meta" id="certsMeta">-- earned</span>
+  </div>
+  <div class="cert-grid" id="certsList"></div>
+
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+(async function () {
+  // ── Auth guard ──
+  await requireAuth();
+  const currentUser = await getCurrentUser();
+  if (!currentUser || !currentUser.profile) {
+    showToast('Unable to load your profile. Please log in again.', 'error');
+    return;
+  }
+
+  const sb = getClient();
+  const profile = currentUser.profile;
+  const userId = profile.id;
+
+  // ── SVG icon helpers ──
+  const icons = {
+    clock: '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    calendar: '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+    doc: '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    arrow: '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>',
+    download: '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
+    cert: '<svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>'
+  };
+
+  // ── Helpers ──
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  function fmtDate(d) { if (!d) return '--'; return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); }
+  function initials(fn, ln) { return ((fn || '')[0] || '') + ((ln || '')[0] || ''); }
+
+  // ── Fill profile header ──
+  const firstName = profile.first_name || '';
+  const lastName = profile.last_name || '';
+  document.getElementById('userAvatar').textContent = initials(firstName, lastName).toUpperCase() || '--';
+  document.getElementById('welcomeName').textContent = (firstName + ' ' + lastName).trim() || 'Employee';
+
+  const deptName = profile['v2-departments'] ? profile['v2-departments'].name : '';
+  const metaParts = [profile.job_title, deptName, profile.employee_id].filter(Boolean);
+  const metaEl = document.getElementById('welcomeMeta');
+  if (metaParts.length) {
+    let html = metaParts.slice(0, -1).join(' \u00b7 ');
+    if (profile.employee_id) {
+      if (html) html += ' \u00b7 ';
+      html += '<span class="mono" style="font-size:11px;color:var(--ink-faint);">' + esc(profile.employee_id) + '</span>';
+    }
+    metaEl.innerHTML = html;
+  } else {
+    metaEl.textContent = '';
+  }
+
+  // ── Load assigned assessments ──
+  showLoading('assignedList');
+  const { data: assignments, error: assignErr } = await sb
+    .from('v2-assignments')
+    .select('*, "v2-assessments"(*)')
+    .eq('user_id', userId)
+    .order('due_date');
+
+  // Filter to only not-started / pending assignments (exclude completed ones)
+  const pendingAssignments = (assignments || []).filter(a => !['completed', 'submitted'].includes(a.status));
+
+  if (assignErr) {
+    showError('assignedList', 'Failed to load assignments: ' + assignErr.message);
+  } else if (pendingAssignments.length === 0) {
+    showEmpty('assignedList', 'No assessments assigned right now.');
+  } else {
+    const container = document.getElementById('assignedList');
+    container.innerHTML = '';
+    pendingAssignments.forEach(a => {
+      const assess = a['v2-assessments'] || {};
+      const dueDate = a.due_date ? new Date(a.due_date) : null;
+      const isOverdue = dueDate && dueDate < new Date();
+      const statusClass = isOverdue ? 'overdue' : 'pending';
+      const statusLabel = isOverdue ? 'Overdue' : 'Pending';
+      const duration = assess.duration_minutes ? assess.duration_minutes + ' minutes' : '--';
+      const qCount = assess.question_count || assess.total_questions || '--';
+
+      const card = document.createElement('div');
+      card.className = 'assessment-card';
+      card.innerHTML =
+        '<div>' +
+          '<div class="ac-title">' + esc(assess.title || 'Untitled Assessment') + '</div>' +
+          '<div class="ac-details">' +
+            '<span class="ac-detail">' + icons.clock + ' ' + esc(String(duration)) + '</span>' +
+            '<span class="ac-detail">' + icons.calendar + ' Due ' + fmtDate(a.due_date) + '</span>' +
+            '<span class="ac-detail">' + icons.doc + ' ' + esc(String(qCount)) + ' questions</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;">' +
+          '<span class="ac-status ' + statusClass + '">' + statusLabel + '</span>' +
+          '<button class="btn btn-primary btn-sm start-btn" data-assignment-id="' + esc(a.id) + '" data-assessment-id="' + esc(assess.id || '') + '">' +
+            'Start Assessment ' + icons.arrow +
+          '</button>' +
+        '</div>';
+      container.appendChild(card);
+    });
+  }
+  document.getElementById('assignedMeta').textContent = pendingAssignments.length + ' pending';
+
+  // ── Wire Start Assessment buttons ──
+  document.querySelectorAll('.start-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+      const assessmentId = this.getAttribute('data-assessment-id');
+      const assignmentId = this.getAttribute('data-assignment-id');
+      if (!assessmentId) { showToast('Missing assessment ID.', 'error'); return; }
+
+      this.disabled = true;
+      this.textContent = 'Starting...';
+
+      const { data: session, error: sessErr } = await sb
+        .from('v2-sessions')
+        .insert({
+          user_id: userId,
+          assessment_id: assessmentId,
+          assignment_id: assignmentId,
+          status: 'active',
+          started_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (sessErr) {
+        showToast('Could not start session: ' + sessErr.message, 'error');
+        this.disabled = false;
+        this.innerHTML = 'Start Assessment ' + icons.arrow;
+        return;
+      }
+
+      window.location.href = 'Participant Live Assessment.html?session=' + session.id;
+    });
+  });
+
+  // ── Load completed assessments ──
+  showLoading('completedList');
+  const { data: sessions, error: sessionsErr } = await sb
+    .from('v2-sessions')
+    .select('*, "v2-assessments"(*)')
+    .eq('user_id', userId)
+    .in('status', ['submitted', 'graded'])
+    .order('created_at', { ascending: false });
+
+  const completedSessions = sessions || [];
+
+  if (sessionsErr) {
+    showError('completedList', 'Failed to load completed assessments: ' + sessionsErr.message);
+  } else if (completedSessions.length === 0) {
+    showEmpty('completedList', 'No completed assessments yet.');
+  } else {
+    const container = document.getElementById('completedList');
+    container.innerHTML =
+      '<table class="result-table"><thead><tr>' +
+        '<th>Assessment</th><th>Date</th><th>Score</th><th>Status</th><th style="text-align:right">Action</th>' +
+      '</tr></thead><tbody id="completedBody"></tbody></table>';
+
+    const tbody = document.getElementById('completedBody');
+    completedSessions.forEach(s => {
+      const assess = s['v2-assessments'] || {};
+      const score = s.score != null ? Math.round(s.score) : null;
+      const isPass = score != null && score >= 70;
+      const isGraded = s.status === 'graded';
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td style="font-weight:500;">' + esc(assess.title || 'Untitled') + '</td>' +
+        '<td><span class="mono" style="font-size:11px;color:var(--ink-faint);">' + fmtDate(s.completed_at || s.created_at) + '</span></td>' +
+        '<td>' + (score != null
+          ? '<span class="score-badge ' + (isPass ? 'pass' : 'fail') + '">' + score + '%</span>'
+          : '<span style="color:var(--ink-faint);font-size:11px;">--</span>') + '</td>' +
+        '<td><span class="status-tag ' + (isGraded ? 'graded' : 'grading') + '">' + (isGraded ? 'Graded' : 'Pending review') + '</span></td>' +
+        '<td style="text-align:right">' + (isGraded
+          ? '<a href="assessment-results.html?session=' + esc(s.id) + '" class="btn btn-ghost btn-sm">View Results</a>'
+          : '<span class="btn btn-ghost btn-sm" style="opacity:0.5;pointer-events:none;">Pending</span>') + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+  document.getElementById('completedMeta').textContent = completedSessions.length + ' completed';
+
+  // ── Load certificates ──
+  showLoading('certsList');
+  const { data: certs, error: certsErr } = await sb
+    .from('v2-certificates')
+    .select('*')
+    .eq('user_id', userId)
+    .order('issued_at', { ascending: false });
+
+  const certList = certs || [];
+
+  if (certsErr) {
+    showError('certsList', 'Failed to load certificates: ' + certsErr.message);
+  } else if (certList.length === 0) {
+    showEmpty('certsList', 'No certificates earned yet.');
+  } else {
+    const container = document.getElementById('certsList');
+    container.innerHTML = '';
+    certList.forEach(c => {
+      const card = document.createElement('div');
+      card.className = 'cert-card';
+      const scoreText = c.score != null ? 'Score: ' + Math.round(c.score) + '%' : '';
+      const downloadUrl = c.pdf_url || c.certificate_url || ('certificate.html?id=' + c.id);
+      card.innerHTML =
+        '<div class="cert-icon">' + icons.cert + '</div>' +
+        '<div class="cert-title">' + esc(c.title || c.assessment_title || 'Certificate') + '</div>' +
+        (scoreText ? '<div class="cert-score">' + esc(scoreText) + '</div>' : '') +
+        '<div class="cert-date">Issued ' + fmtDate(c.issued_at) + '</div>' +
+        '<a href="' + esc(downloadUrl) + '" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;" target="_blank">' +
+          icons.download + ' Download</a>';
+      container.appendChild(card);
+    });
+  }
+  document.getElementById('certsMeta').textContent = certList.length + ' earned';
+
+  // ── Quick stats ──
+  const totalAssigned = pendingAssignments.length;
+  const totalCompleted = completedSessions.length;
+  const gradedSessions = completedSessions.filter(s => s.score != null);
+  const avgScore = gradedSessions.length > 0
+    ? Math.round(gradedSessions.reduce((sum, s) => sum + s.score, 0) / gradedSessions.length)
+    : 0;
+
+  document.getElementById('statAssigned').textContent = totalAssigned;
+  document.getElementById('statCompleted').textContent = totalCompleted;
+  document.getElementById('statAvgScore').innerHTML = avgScore + '<span class="unit">%</span>';
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Admin — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b;
+    --ink-soft: #2a3a52;
+    --ink-mute: #5a6a82;
+    --ink-faint: #95a0b3;
+    --paper: #fbfaf7;
+    --paper-warm: #f5f2ea;
+    --rule: #e6e1d3;
+    --rule-soft: #efece1;
+    --edstellar: #1d4ed8;
+    --edstellar-deep: #0a2472;
+    --edstellar-mist: #e8eeff;
+    --accent: #c8410b;
+    --accent-soft: #fdeee0;
+    --ok: #1f6f43;
+    --ok-soft: #e3f1e7;
+    --warn: #8a5a00;
+    --warn-soft: #fdf3d8;
+    --bad: #a8290c;
+    --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(14, 26, 43, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TOP BAR ============ */
+  .topbar { background: var(--ink); color: var(--paper); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #000; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; flex-shrink: 0; }
+  .brand-logo-text { color: var(--ink); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .top-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 6px 14px; font-size: 11px; font-family: inherit; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+  .top-btn.primary { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500; margin-left: 6px; }
+
+  /* ============ MAIN ============ */
+  .main { max-width: 1200px; margin: 0 auto; padding: 28px 28px 60px; }
+
+  /* ============ STATS ============ */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-bottom: 36px; border: 1px solid var(--rule); background: var(--paper); }
+  .stat-cell { padding: 18px 20px; border-right: 1px solid var(--rule); }
+  .stat-cell:last-child { border-right: none; }
+  .stat-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 8px; }
+  .stat-value { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 500; color: var(--ink); line-height: 1; font-feature-settings: 'lnum'; }
+  .stat-value .unit { font-size: 14px; color: var(--ink-faint); margin-left: 2px; }
+  .stat-trend { font-size: 10.5px; color: var(--ink-mute); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+  .stat-trend.up { color: var(--ok); }
+
+  /* ============ SECTION HEADER ============ */
+  .sect-head { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .sect-head h2 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .sect-head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-right: 8px; font-weight: 600; }
+  .sect-head .meta { font-size: 11px; color: var(--ink-mute); }
+  .sect-actions { display: flex; gap: 8px; }
+
+  /* ============ BUTTONS ============ */
+  .btn { padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+
+  /* ============ SEARCH ============ */
+  .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
+  .search-box { display: flex; align-items: center; gap: 8px; border: 1px solid var(--rule); padding: 7px 11px; background: var(--paper-warm); flex: 1; max-width: 320px; }
+  .search-box svg { color: var(--ink-faint); flex-shrink: 0; }
+  .search-box input { border: none; background: transparent; outline: none; font-family: inherit; font-size: 12px; color: var(--ink); flex: 1; width: 100%; }
+  .search-box input::placeholder { color: var(--ink-faint); }
+
+  /* ============ EMPLOYEE TABLE ============ */
+  .emp-table { width: 100%; border-collapse: collapse; font-size: 12.5px; border: 1px solid var(--rule); }
+  .emp-table thead th { background: var(--paper-warm); text-align: left; padding: 11px 14px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); font-weight: 600; border-bottom: 1px solid var(--rule); }
+  .emp-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  .emp-table tbody tr:last-child td { border-bottom: none; }
+  .emp-table tbody tr:hover { background: #fdfcf9; }
+  .emp-name { font-weight: 500; color: var(--ink); }
+  .emp-email { font-size: 11.5px; color: var(--ink-mute); }
+  .emp-dept { font-size: 11.5px; }
+  .emp-id { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .status-dot.active { background: var(--ok); }
+  .status-dot.inactive { background: var(--ink-faint); }
+
+  .status-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; font-weight: 600; display: inline-flex; align-items: center; border: 1px solid; }
+  .status-tag.active { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .status-tag.inactive { background: var(--paper-warm); color: var(--ink-faint); border-color: var(--rule); }
+
+  /* ============ ASSESSMENT CARDS ============ */
+  .assess-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .assess-card { border: 1px solid var(--rule); background: var(--paper); padding: 20px; transition: border-color 0.15s; }
+  .assess-card:hover { border-color: var(--ink-faint); }
+  .assess-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+  .assess-meta { font-size: 11px; color: var(--ink-mute); margin-bottom: 14px; line-height: 1.6; }
+  .assess-stats { display: flex; gap: 16px; margin-bottom: 14px; font-size: 11px; }
+  .assess-stat { display: flex; flex-direction: column; }
+  .assess-stat .as-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-faint); font-weight: 600; }
+  .assess-stat .as-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--ink); }
+  .assess-status { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 10px; font-weight: 600; display: inline-block; border: 1px solid; margin-bottom: 14px; }
+  .assess-status.published { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .assess-status.draft { background: var(--warn-soft); color: var(--warn); border-color: #ead8a3; }
+  .assess-actions { display: flex; gap: 6px; border-top: 1px solid var(--rule-soft); padding-top: 14px; }
+
+  /* ============ ACTIVITY & GRADING ============ */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .activity-list { border: 1px solid var(--rule); background: var(--paper); }
+  .activity-header { padding: 14px 18px; border-bottom: 1px solid var(--rule); background: var(--paper-warm); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; }
+  .activity-item { padding: 12px 18px; border-bottom: 1px solid var(--rule-soft); font-size: 12.5px; display: flex; align-items: flex-start; gap: 10px; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); flex-shrink: 0; margin-top: 7px; }
+  .activity-dot.new { background: var(--accent); }
+  .activity-text { color: var(--ink-soft); line-height: 1.45; }
+  .activity-text strong { color: var(--ink); font-weight: 500; }
+  .activity-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+
+  .grading-item { padding: 12px 18px; border-bottom: 1px solid var(--rule-soft); display: flex; align-items: center; justify-content: space-between; }
+  .grading-item:last-child { border-bottom: none; }
+  .grading-info { font-size: 12.5px; }
+  .grading-name { font-weight: 500; color: var(--ink); }
+  .grading-detail { font-size: 11px; color: var(--ink-mute); }
+  .grading-type { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; background: var(--paper-warm); border: 1px solid var(--rule); color: var(--ink-mute); font-weight: 600; }
+
+  /* ============ MODAL ============ */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(14,26,43,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: var(--paper); border: 1px solid var(--rule); width: 520px; max-height: 80vh; overflow-y: auto; }
+  .modal-header { padding: 18px 24px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; }
+  .modal-close { background: none; border: none; cursor: pointer; color: var(--ink-mute); padding: 4px; }
+  .modal-close:hover { color: var(--ink); }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--rule); display: flex; justify-content: flex-end; gap: 8px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; }
+  .form-input:focus { border-color: var(--ink-faint); background: var(--paper); }
+  .form-input::placeholder { color: var(--ink-faint); }
+  .form-select { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; appearance: none; }
+
+  /* CSV upload zone */
+  .upload-zone { border: 2px dashed var(--rule); padding: 32px; text-align: center; background: var(--paper-warm); cursor: pointer; transition: border-color 0.15s; }
+  .upload-zone:hover { border-color: var(--ink-faint); }
+  .upload-zone svg { color: var(--ink-faint); margin-bottom: 8px; }
+  .upload-zone p { font-size: 13px; color: var(--ink-mute); }
+  .upload-zone .hint { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+  .q-type-tag { display: inline-block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); background: var(--paper-warm); padding: 2px 8px; border: 1px solid var(--rule); font-weight: 600; }
+  .q-type-tag.mcq { color: var(--edstellar); background: var(--edstellar-mist); border-color: #c5d5f5; }
+  .q-type-tag.scenario { color: var(--accent); background: var(--accent-soft); border-color: #e8c0a3; }
+  .q-type-tag.coding { color: var(--ok); background: var(--ok-soft); border-color: #c5e0ce; }
+
+  /* ============ MOBILE RESPONSIVE MODALS ============ */
+  @media (max-width: 768px) {
+    .modal { width: 95vw !important; max-width: 95vw; max-height: 92vh; border: none; }
+    .modal-header { padding: 14px 16px; }
+    .modal-title { font-size: 15px; }
+    .modal-body { padding: 16px !important; }
+    .modal-footer { padding: 12px 16px; flex-wrap: wrap; }
+    .modal-footer .btn { flex: 1; min-width: 0; text-align: center; }
+    .form-group { margin-bottom: 14px; }
+    .form-input, .form-select { font-size: 14px; padding: 10px 12px; }
+    .upload-zone { padding: 20px; }
+    /* AI Wizard steps */
+    #aiWizardProgress { flex-wrap: wrap; gap: 4px; padding: 12px 16px 0 !important; }
+    .ai-wiz-step { font-size: 9px; padding: 4px 6px; }
+    .ai-wiz-dot { width: 16px; height: 16px; font-size: 9px; }
+    /* AI Wizard grid layouts — stack on mobile */
+    .wiz-grid { display: flex !important; flex-direction: column !important; }
+    .wiz-grid .form-group { margin-bottom: 12px; }
+    /* Grading modal rubric table */
+    .grading-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+  @media (max-width: 480px) {
+    .modal { width: 100vw !important; max-width: 100vw; max-height: 100vh; height: 100vh; }
+    .modal-overlay.visible { align-items: flex-end; }
+    .modal-header { padding: 12px 14px; }
+    .modal-body { padding: 14px !important; }
+    .modal-footer { padding: 10px 14px; }
+    .modal-footer .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;"></div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Admin Dashboard</span>
+  </div>
+  <div class="topbar-actions">
+    <a href="admin_reports.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Reports
+    </a>
+    <a href="admin_company_profile.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Company
+    </a>
+    <a href="settings.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </a>
+    <button class="top-btn" onclick="signOut()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+      Logout
+    </button>
+    <div class="user-avatar">AD</div>
+  </div>
+</div>
+
+<!-- ============ MAIN CONTENT ============ -->
+<div class="main">
+
+  <!-- ============ STATS GRID ============ -->
+  <div class="stats-grid">
+    <div class="stat-cell">
+      <div class="stat-label">Total employees</div>
+      <div class="stat-value" id="statEmployees">--</div>
+      <div class="stat-trend" id="statEmployeesTrend"></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Active assessments</div>
+      <div class="stat-value" id="statAssessments">--</div>
+      <div class="stat-trend" id="statAssessmentsTrend"></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Completed this month</div>
+      <div class="stat-value" id="statCompleted">--</div>
+      <div class="stat-trend" id="statCompletedTrend"></div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Pending grading</div>
+      <div class="stat-value" id="statPending">--</div>
+      <div class="stat-trend" id="statPendingTrend"></div>
+    </div>
+  </div>
+
+  <!-- ============ EMPLOYEES SECTION ============ -->
+  <div class="sect-head">
+    <h2><span class="num">01</span>Employees</h2>
+    <div class="sect-actions">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('csvModal').classList.add('visible')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Upload CSV
+      </button>
+      <button class="btn btn-sm" onclick="document.getElementById('addEmpModal').classList.add('visible')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Employee
+      </button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Search employees by name, email, or ID...">
+    </div>
+    <span style="font-size:11px;color:var(--ink-faint);" id="empCountLabel">Loading...</span>
+  </div>
+
+  <table class="emp-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Department</th>
+        <th>Employee ID</th>
+        <th>Status</th>
+        <th style="text-align:right">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="empTableBody">
+      <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-faint);font-size:12px;">Loading employees...</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ ASSESSMENTS SECTION ============ -->
+  <div class="sect-head">
+    <h2><span class="num">02</span>Assessments</h2>
+    <div class="sect-actions">
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;" onclick="document.getElementById('aiAssessModal').classList.add('visible')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Create with AI
+      </button>
+      <a href="admin_assessment_editor.html" class="btn btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Assessment
+      </a>
+    </div>
+  </div>
+
+  <div class="assess-grid" id="assessGrid">
+    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-faint);font-size:12px;">Loading assessments...</div>
+  </div>
+  <div style="text-align:center;margin:12px 0 28px;"><a href="admin_reports.html" style="font-size:11px;color:var(--edstellar);text-decoration:none;font-weight:500;letter-spacing:0.04em;">VIEW ALL ASSESSMENTS &amp; REPORTS &rarr;</a></div>
+
+  <!-- ============ COMPLETED SUBMISSIONS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">03</span>Completed submissions</h2>
+    <div class="sect-actions">
+      <span class="meta" id="submissionsMeta">Loading...</span>
+      <a href="admin_reports.html" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+  </div>
+  <div id="submissionsList" style="border:1px solid var(--rule);margin-bottom:32px;">
+    <div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">Loading submissions...</div>
+  </div>
+
+  <!-- ============ RECENT ACTIVITY ============ -->
+  <div class="sect-head">
+    <h2><span class="num">04</span>Recent activity</h2>
+  </div>
+
+  <div class="activity-list" style="border:1px solid var(--rule);margin-bottom:32px;">
+    <div id="activityFeed" style="color:var(--ink-faint);font-size:12px;padding:20px;text-align:center;">Loading activity...</div>
+  </div>
+
+</div>
+
+<!-- ============ ADD EMPLOYEE MODAL ============ -->
+<div class="modal-overlay" id="addEmpModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title serif">Add Employee</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">First name</label>
+          <input class="form-input" type="text" id="addEmpFirst" placeholder="John">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last name</label>
+          <input class="form-input" type="text" id="addEmpLast" placeholder="Doe">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email address</label>
+        <input class="form-input" type="email" id="addEmpEmail" placeholder="john.doe@company.com">
+      </div>
+      <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Employee ID</label>
+          <input class="form-input" type="text" id="addEmpId" placeholder="EMP-0001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          <select class="form-select" id="addEmpDept">
+            <option value="">Select department</option>
+          </select>
+        </div>
+      </div>
+      <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Job title</label>
+          <input class="form-input" type="text" id="addEmpTitle" placeholder="e.g. Senior Manager">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Join date</label>
+          <input class="form-input" type="date" id="empJoinDate">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="addEmpStatus">
+            <option value="active" selected>Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-error" id="addEmpError" style="display:none;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Employee
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CSV UPLOAD MODAL ============ -->
+<div class="modal-overlay" id="csvModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title serif">Upload Employee CSV</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-zone">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <p>Drag and drop your CSV file here</p>
+        <p class="hint">or click to browse · Accepts .csv files only</p>
+      </div>
+      <div style="margin-top:18px;padding:14px;background:var(--paper-warm);border:1px solid var(--rule);">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-mute);font-weight:600;margin-bottom:8px;">Expected CSV format</div>
+        <code class="mono" style="font-size:11px;color:var(--ink-soft);line-height:1.8;display:block;">
+          first_name,last_name,email,employee_id,department,job_title,join_date<br>
+          John,Doe,john@co.com,EMP001,Engineering,Software Engineer,2025-01-15<br>
+          Jane,Smith,jane@co.com,EMP002,Marketing,Marketing Lead,2024-11-01
+        </code>
+      </div>
+      <button onclick="downloadSampleCSV(event)" style="display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:8px 16px;font-family:inherit;font-size:12px;font-weight:600;color:var(--edstellar);background:var(--edstellar-mist);border:1px solid #c5d5f5;cursor:pointer;text-transform:uppercase;letter-spacing:0.06em;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        Download Sample CSV
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Upload & Import
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GRADING MODAL ============ -->
+<div class="modal-overlay" id="gradeModal">
+  <div class="modal" style="width:680px;">
+    <div class="modal-header">
+      <span class="modal-title serif">Grade Submission</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Context -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <div class="form-label">Employee</div>
+          <div style="font-size:13px;font-weight:500;color:var(--ink);" id="gradeEmpName">Sarah Chen</div>
+        </div>
+        <div>
+          <div class="form-label">Assessment · Question</div>
+          <div style="font-size:13px;color:var(--ink-soft);" id="gradeAssessDetail">AI Foundations · Q-SCN-022 · Scenario</div>
+        </div>
+      </div>
+
+      <!-- Question prompt (read-only) -->
+      <div class="form-group">
+        <label class="form-label">Question prompt</label>
+        <div style="padding:12px 14px;background:var(--paper-warm);border:1px solid var(--rule);font-size:12.5px;color:var(--ink-soft);line-height:1.6;">
+          Design a system prompt for a customer complaint triage agent that routes tickets to the correct department at Emaar Properties.
+        </div>
+      </div>
+
+      <!-- Employee response (read-only) -->
+      <div class="form-group">
+        <label class="form-label">Employee's response</label>
+        <div style="padding:14px;background:var(--paper-warm);border:1px solid var(--rule);font-size:12.5px;color:var(--ink);line-height:1.7;max-height:180px;overflow-y:auto;">
+          You are a customer complaint triage agent for Emaar Properties. Your role is to analyse incoming customer complaints and route them to the appropriate department based on the nature of the complaint...<br><br>
+          <em style="color:var(--ink-faint);">[Full response truncated for display — 847 words submitted]</em>
+        </div>
+      </div>
+
+      <!-- Rubric criteria scores -->
+      <div class="form-group">
+        <label class="form-label">Rubric criteria</label>
+        <div style="border:1px solid var(--rule);">
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;background:var(--paper-warm);padding:8px 14px;border-bottom:1px solid var(--rule);">
+            <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;">Criterion</span>
+            <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;text-align:center;">Score</span>
+            <span style="font-size:9.5px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;text-align:center;">Max</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;padding:8px 14px;border-bottom:1px solid var(--rule-soft);align-items:center;">
+            <span style="font-size:12.5px;color:var(--ink);">Role definition</span>
+            <input class="rubric-score-input" type="number" min="0" max="3" value="" placeholder="0" style="width:60px;padding:6px 8px;font-family:inherit;font-size:12px;border:1px solid var(--rule);background:var(--paper);text-align:center;margin:0 auto;" oninput="updateGradeTotal()">
+            <span style="font-size:12px;color:var(--ink-faint);text-align:center;">3</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;padding:8px 14px;border-bottom:1px solid var(--rule-soft);align-items:center;">
+            <span style="font-size:12.5px;color:var(--ink);">Output structure</span>
+            <input class="rubric-score-input" type="number" min="0" max="4" value="" placeholder="0" style="width:60px;padding:6px 8px;font-family:inherit;font-size:12px;border:1px solid var(--rule);background:var(--paper);text-align:center;margin:0 auto;" oninput="updateGradeTotal()">
+            <span style="font-size:12px;color:var(--ink-faint);text-align:center;">4</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;padding:8px 14px;border-bottom:1px solid var(--rule-soft);align-items:center;">
+            <span style="font-size:12.5px;color:var(--ink);">Edge cases</span>
+            <input class="rubric-score-input" type="number" min="0" max="4" value="" placeholder="0" style="width:60px;padding:6px 8px;font-family:inherit;font-size:12px;border:1px solid var(--rule);background:var(--paper);text-align:center;margin:0 auto;" oninput="updateGradeTotal()">
+            <span style="font-size:12px;color:var(--ink-faint);text-align:center;">4</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;padding:8px 14px;border-bottom:1px solid var(--rule-soft);align-items:center;">
+            <span style="font-size:12.5px;color:var(--ink);">Tone</span>
+            <input class="rubric-score-input" type="number" min="0" max="2" value="" placeholder="0" style="width:60px;padding:6px 8px;font-family:inherit;font-size:12px;border:1px solid var(--rule);background:var(--paper);text-align:center;margin:0 auto;" oninput="updateGradeTotal()">
+            <span style="font-size:12px;color:var(--ink-faint);text-align:center;">2</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 80px 80px;gap:0;padding:8px 14px;align-items:center;">
+            <span style="font-size:12.5px;color:var(--ink);">Word ceiling</span>
+            <input class="rubric-score-input" type="number" min="0" max="2" value="" placeholder="0" style="width:60px;padding:6px 8px;font-family:inherit;font-size:12px;border:1px solid var(--rule);background:var(--paper);text-align:center;margin:0 auto;" oninput="updateGradeTotal()">
+            <span style="font-size:12px;color:var(--ink-faint);text-align:center;">2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total score -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;background:var(--paper-warm);border:1px solid var(--rule);">
+        <span class="form-label" style="margin-bottom:0;">Total score</span>
+        <span style="font-family:'Fraunces',serif;font-size:24px;font-weight:500;color:var(--ink);" id="gradeTotalScore">0</span>
+        <span style="font-size:14px;color:var(--ink-faint);">/ 15</span>
+      </div>
+
+      <!-- Performance notes -->
+      <div class="form-group">
+        <label class="form-label">Performance notes</label>
+        <textarea class="form-input" style="min-height:100px;resize:vertical;font-family:inherit;line-height:1.6;" placeholder="Provide qualitative feedback on the employee's response..."></textarea>
+      </div>
+
+      <!-- AI assist -->
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:0;" id="aiAssistBtn" onclick="runAiAssist()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4c0 2-2 3-2 5h-4c0-2-2-3-2-5a4 4 0 014-4z"/><line x1="10" y1="14" x2="14" y2="14"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+        AI-Assist
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Submit Grade
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RESULTS MODAL ============ -->
+<div class="modal-overlay" id="resultsModal">
+  <div class="modal" style="width:680px;">
+    <div class="modal-header">
+      <span class="modal-title serif">Assessment Results</span>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').classList.remove('visible')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <div style="padding:20px 24px;background:var(--paper-warm);border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink);" id="resParticipant">Participant Name</div>
+          <div style="font-size:11px;color:var(--ink-mute);" id="resAssessTitle">Assessment Title</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="text-align:center;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-faint);">Score</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;" id="resScore">--</div>
+          </div>
+          <div id="resStatus" style="padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;"></div>
+        </div>
+      </div>
+      <div id="resGradingStatus" style="padding:12px 24px;background:var(--edstellar-mist);border-bottom:1px solid #c5d5f5;display:none;">
+        <div style="font-size:12px;color:var(--edstellar);display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+          <span id="resGradingText">Running AI grading...</span>
+        </div>
+      </div>
+      <div id="resQuestionList" style="max-height:400px;overflow-y:auto;padding:16px 24px;">
+        <div style="text-align:center;color:var(--ink-faint);font-size:12px;padding:20px;">Loading results...</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="this.closest('.modal-overlay').classList.remove('visible')">Close</button>
+      <button class="btn btn-primary btn-sm" id="resGradeBtn" onclick="runAiGrading()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        Grade with AI
+      </button>
+      <button class="btn btn-ok btn-sm" id="resSendBtn" onclick="sendResultsEmail()" style="display:none;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Send Results to Participant
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ AI ASSESSMENT WIZARD MODAL ============ -->
+<div class="modal-overlay" id="aiAssessModal">
+  <div class="modal" style="width:640px;">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+          <svg width="14" height="14" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="modal-title serif">Create Assessment with AI</span>
+      </div>
+      <button class="modal-close" onclick="closeAiWizard()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <!-- Progress bar -->
+      <div style="display:flex;padding:16px 24px 0;gap:6px;" id="aiWizardProgress">
+        <div class="ai-wiz-step active" data-step="1"><span class="ai-wiz-dot">1</span> Department</div>
+        <div class="ai-wiz-step" data-step="2"><span class="ai-wiz-dot">2</span> Programme</div>
+        <div class="ai-wiz-step" data-step="3"><span class="ai-wiz-dot">3</span> Details</div>
+        <div class="ai-wiz-step" data-step="4"><span class="ai-wiz-dot">4</span> Questions</div>
+        <div class="ai-wiz-step" data-step="5"><span class="ai-wiz-dot">5</span> Generate</div>
+      </div>
+
+      <!-- Step 1: Department -->
+      <div class="ai-wiz-panel" id="aiStep1" style="padding:24px;">
+        <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:4px;">Which department is this assessment for?</h3>
+        <p style="font-size:12px;color:var(--ink-mute);margin-bottom:16px;">Select the target department from your company profile.</p>
+        <div id="aiDeptList" style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span style="color:var(--ink-faint);font-size:12px;">Loading departments...</span>
+        </div>
+      </div>
+
+      <!-- Step 2: Programme -->
+      <div class="ai-wiz-panel" id="aiStep2" style="padding:24px;display:none;">
+        <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:4px;">Which programme does this belong to?</h3>
+        <p style="font-size:12px;color:var(--ink-mute);margin-bottom:16px;">Select a programme from your company profile.</p>
+        <div id="aiProgList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <!-- Step 3: Assessment Details -->
+      <div class="ai-wiz-panel" id="aiStep3" style="padding:24px;display:none;">
+        <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:4px;">Assessment configuration</h3>
+        <p style="font-size:12px;color:var(--ink-mute);margin-bottom:16px;">Set the basic parameters for this assessment.</p>
+        <div class="form-group">
+          <label class="form-label">Assessment title</label>
+          <input class="form-input" type="text" id="aiAssessTitle" placeholder="AI will suggest one if left blank">
+        </div>
+        <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Duration (minutes)</label>
+            <input class="form-input" type="number" id="aiDuration" value="60" min="5">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Passing score (%)</label>
+            <input class="form-input" type="number" id="aiPassing" value="70" min="0" max="100">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Max attempts</label>
+            <input class="form-input" type="number" id="aiMaxAttempts" value="1" min="1">
+          </div>
+        </div>
+        <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Difficulty level</label>
+            <select class="form-select" id="aiDifficulty">
+              <option value="beginner">Beginner</option>
+              <option value="intermediate" selected>Intermediate</option>
+              <option value="advanced">Advanced</option>
+              <option value="expert">Expert</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Negative marking</label>
+            <select class="form-select" id="aiNegMarking">
+              <option value="none" selected>No negative marking</option>
+              <option value="25">-25% per wrong answer</option>
+              <option value="50">-50% per wrong answer</option>
+            </select>
+          </div>
+        </div>
+        <div class="wiz-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Auto-save interval (sec)</label>
+            <input class="form-input" type="number" id="aiAutoSave" value="30" min="10">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Proctoring</label>
+            <select class="form-select" id="aiProctoring">
+              <option value="enabled" selected>Enabled</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Question Configuration -->
+      <div class="ai-wiz-panel" id="aiStep4" style="padding:24px;display:none;">
+        <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:4px;">Question mix & structure</h3>
+        <p style="font-size:12px;color:var(--ink-mute);margin-bottom:16px;">Tell the AI how many questions to generate and what types to include.</p>
+        <div class="form-group">
+          <label class="form-label">Total number of questions</label>
+          <input class="form-input" type="number" id="aiTotalQuestions" value="10" min="1" max="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Question types to include</label>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">
+            <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;cursor:pointer;">
+              <input type="checkbox" id="aiIncMcq" checked style="accent-color:var(--edstellar);">
+              <span style="display:inline-flex;align-items:center;gap:6px;"><span class="q-type-tag mcq" style="margin:0;">MCQ</span> Multiple choice questions</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;cursor:pointer;">
+              <input type="checkbox" id="aiIncScenario" checked style="accent-color:var(--accent);">
+              <span style="display:inline-flex;align-items:center;gap:6px;"><span class="q-type-tag scenario" style="margin:0;">Scenario</span> Scenario / essay questions</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:12.5px;cursor:pointer;">
+              <input type="checkbox" id="aiIncCoding" style="accent-color:var(--ok);">
+              <span style="display:inline-flex;align-items:center;gap:6px;"><span class="q-type-tag coding" style="margin:0;">Coding</span> Coding tasks</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group" id="aiCodingLangGroup" style="display:none;">
+          <label class="form-label">Coding language</label>
+          <select class="form-select" id="aiCodingLang">
+            <option selected>Python 3.11</option>
+            <option>JavaScript</option>
+            <option>Java</option>
+            <option>Go</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Additional instructions for AI (optional)</label>
+          <textarea class="form-textarea" id="aiExtraInstructions" placeholder="e.g. Focus on real-world UAE business scenarios, include questions about PDPL compliance..." style="min-height:70px;"></textarea>
+        </div>
+      </div>
+
+      <!-- Step 5: Generation -->
+      <div class="ai-wiz-panel" id="aiStep5" style="padding:24px;display:none;">
+        <div id="aiGenPending" style="text-align:center;padding:30px 0;">
+          <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:8px;">Ready to generate</h3>
+          <p style="font-size:12px;color:var(--ink-mute);margin-bottom:20px;">Review your selections and click Generate to create your assessment.</p>
+          <div id="aiSummary" style="text-align:left;background:var(--paper-warm);border:1px solid var(--rule);padding:16px;font-size:12px;line-height:1.8;"></div>
+        </div>
+        <div id="aiGenLoading" style="text-align:center;padding:40px 0;display:none;">
+          <div style="width:40px;height:40px;border:3px solid var(--rule);border-top-color:#6366f1;border-radius:50%;animation:aiSpin 0.8s linear infinite;margin:0 auto 16px;"></div>
+          <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:6px;">Generating assessment...</h3>
+          <p style="font-size:12px;color:var(--ink-mute);" id="aiGenStatus">Creating sections, questions, and rubric criteria</p>
+        </div>
+        <div id="aiGenDone" style="padding:24px 0 0;display:none;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+            <div style="width:32px;height:32px;background:var(--ok-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="16" height="16" fill="none" stroke="var(--ok)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <h3 style="font-family:'Fraunces',serif;font-size:16px;font-weight:500;margin-bottom:2px;">Assessment created!</h3>
+              <p style="font-size:11px;color:var(--ink-mute);" id="aiGenResult"></p>
+            </div>
+          </div>
+          <div id="aiGenPreview" style="max-height:400px;overflow-y:auto;border:1px solid var(--rule);"></div>
+          <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+            <button class="btn btn-ghost btn-sm" onclick="closeAiWizard()">Close</button>
+            <a href="#" class="btn btn-primary btn-sm" id="aiEditLink" target="_self">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Open in Editor
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" id="aiWizardFooter">
+      <button class="btn btn-ghost btn-sm" onclick="closeAiWizard()">Cancel</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="aiPrevBtn" style="display:none;" onclick="aiWizardNav(-1)">
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Back
+        </button>
+        <button class="btn btn-primary btn-sm" id="aiNextBtn" onclick="aiWizardNav(1)">
+          Next
+          <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <button class="btn btn-sm" id="aiGenerateBtn" style="display:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:#6366f1;" onclick="generateAiAssessment()">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Generate Assessment
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ai-wiz-step { display:flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:500;flex:1;padding-bottom:12px;border-bottom:2px solid var(--rule); }
+  .ai-wiz-step.active { color:var(--ink);border-bottom-color:#6366f1; }
+  .ai-wiz-step.done { color:var(--ok);border-bottom-color:var(--ok); }
+  .ai-wiz-dot { width:18px;height:18px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1px solid var(--rule);background:var(--paper-warm);flex-shrink:0; }
+  .ai-wiz-step.active .ai-wiz-dot { background:#6366f1;color:#fff;border-color:#6366f1; }
+  .ai-wiz-step.done .ai-wiz-dot { background:var(--ok-soft);color:var(--ok);border-color:#c5e0ce; }
+  .ai-dept-btn, .ai-prog-btn { padding:10px 16px;border:1px solid var(--rule);background:var(--paper);cursor:pointer;font-family:inherit;font-size:12.5px;color:var(--ink);transition:all 0.15s;text-align:left; }
+  .ai-dept-btn:hover, .ai-prog-btn:hover { border-color:var(--ink-faint);background:var(--paper-warm); }
+  .ai-dept-btn.selected { border-color:#6366f1;background:#f0f0ff;color:#6366f1;font-weight:600; }
+  .ai-prog-btn.selected { border-color:#6366f1;background:#f0f0ff;color:#6366f1;font-weight:600; }
+  .form-textarea { width:100%;padding:10px 14px;font-family:inherit;font-size:13px;color:var(--ink);border:1px solid var(--rule);background:var(--paper-warm);outline:none;resize:vertical;min-height:80px; }
+  @keyframes aiSpin { to { transform:rotate(360deg); } }
+</style>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="email-service.js"></script>
+<script src="seed-data.js"></script>
+<script src="ai-grading.js"></script>
+<script src="edge-cases.js"></script>
+<script>
+(async function() {
+  // Auth guard
+  const currentUser = await requireAdmin();
+  const sb = getClient();
+  const orgId = await getOrgId();
+
+  // Auto-fill join date
+  document.getElementById('empJoinDate').valueAsDate = new Date();
+
+  // ============ LOAD DEPARTMENTS (for modal) ============
+  let departmentsMap = {};
+  async function loadDepartments() {
+    const { data } = await sb.from('v2-departments').select('*').eq('org_id', orgId);
+    if (data) {
+      const sel = document.getElementById('addEmpDept');
+      sel.innerHTML = '<option value="">Select department</option>';
+      data.forEach(d => {
+        departmentsMap[d.id] = d.name;
+        sel.innerHTML += '<option value="' + d.id + '">' + d.name + '</option>';
+      });
+    }
+  }
+
+  // ============ LOAD STATS ============
+  async function loadStats() {
+    const [empRes, assessRes, sessRes, pendRes] = await Promise.all([
+      sb.from('v2-users').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('role', 'employee'),
+      sb.from('v2-assessments').select('id,status', { count: 'exact' }).eq('org_id', orgId),
+      sb.from('v2-sessions').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
+      sb.from('v2-grading-queue').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+    ]);
+
+    document.getElementById('statEmployees').textContent = empRes.count || 0;
+    const assessments = assessRes.data || [];
+    const published = assessments.filter(a => a.status === 'published').length;
+    const draft = assessments.filter(a => a.status === 'draft').length;
+    document.getElementById('statAssessments').textContent = assessments.length;
+    document.getElementById('statAssessmentsTrend').textContent = published + ' published \u00b7 ' + draft + ' draft';
+    document.getElementById('statCompleted').textContent = sessRes.count || 0;
+    document.getElementById('statPending').textContent = pendRes.count || 0;
+  }
+
+  // ============ LOAD EMPLOYEES ============
+  async function loadEmployees(search) {
+    const tbody = document.getElementById('empTableBody');
+    let query = sb.from('v2-users').select('*, "v2-departments"(name)').eq('org_id', orgId).eq('role', 'employee').order('created_at', { ascending: false });
+    if (search) {
+      query = query.or('first_name.ilike.%' + search + '%,last_name.ilike.%' + search + '%,email.ilike.%' + search + '%,employee_id.ilike.%' + search + '%');
+    }
+    const { data, error } = await query;
+    if (error) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--bad);font-size:12px;">Error loading employees: ' + error.message + '</td></tr>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-faint);font-size:12px;">No employees found</td></tr>';
+      document.getElementById('empCountLabel').textContent = '0 employees';
+      return;
+    }
+    document.getElementById('empCountLabel').textContent = 'Showing ' + data.length + ' of ' + data.length;
+    tbody.innerHTML = data.map(u => {
+      const dept = u['v2-departments'] ? u['v2-departments'].name : '--';
+      const statusCls = u.status === 'active' ? 'active' : 'inactive';
+      const statusLabel = u.status ? u.status.charAt(0).toUpperCase() + u.status.slice(1) : 'Unknown';
+      return '<tr>' +
+        '<td><span class="emp-name">' + (u.first_name || '') + ' ' + (u.last_name || '') + '</span></td>' +
+        '<td class="emp-email">' + (u.email || '') + '</td>' +
+        '<td class="emp-dept">' + dept + '</td>' +
+        '<td><span class="emp-id">' + (u.employee_id || '') + '</span></td>' +
+        '<td><span class="status-tag ' + statusCls + '"><span class="status-dot ' + statusCls + '"></span>' + statusLabel + '</span></td>' +
+        '<td style="text-align:right;white-space:nowrap;"><a href="admin_employee_profile.html?id=' + u.id + '" class="btn btn-ghost btn-sm">View</a>' +
+        '<button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="deleteEmployee(\'' + u.id + '\', \'' + ((u.first_name || '') + ' ' + (u.last_name || '')).trim().replace(/'/g, "\\'") + '\')"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ============ LOAD ASSESSMENTS ============
+  async function loadAssessments() {
+    const grid = document.getElementById('assessGrid');
+    const { data, error } = await sb.from('v2-assessments').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10);
+    if (error) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--bad);font-size:12px;">Error: ' + error.message + '</div>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--ink-faint);font-size:12px;">No assessments yet. Create your first assessment.</div>';
+      return;
+    }
+    grid.innerHTML = data.map(a => {
+      const statusCls = a.status === 'published' ? 'published' : 'draft';
+      const isDraft = a.status !== 'published';
+      return '<div class="assess-card">' +
+        '<div class="assess-status ' + statusCls + '">' + (a.status || 'draft').charAt(0).toUpperCase() + (a.status || 'draft').slice(1) + '</div>' +
+        '<div class="assess-title">' + (a.title || 'Untitled') + '</div>' +
+        '<div class="assess-meta">' + (a.description || '') + '</div>' +
+        '<div class="assess-stats">' +
+          '<div class="assess-stat"><span class="as-label">Duration</span><span class="as-val">' + (a.duration_minutes || 0) + 'm</span></div>' +
+        '</div>' +
+        '<div class="assess-actions">' +
+          '<a href="admin_assessment_editor.html?id=' + a.id + '" class="btn btn-ghost btn-sm">Edit</a>' +
+          (isDraft ? '<button class="btn btn-ghost btn-sm" disabled style="opacity:0.4;">Assign</button>' : '<a href="admin_assessment_editor.html?id=' + a.id + '&assign=1" class="btn btn-ghost btn-sm">Assign</a>') +
+          '<button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="deleteAssessment(\'' + a.id + '\', \'' + (a.title || 'Untitled').replace(/'/g, "\\'") + '\')"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg> Delete</button>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  // ============ LOG ACTIVITY ============
+  async function logActivity(action, entityType, entityId, details) {
+    try {
+      await sb.from('v2-activity-log').insert({
+        org_id: orgId,
+        user_id: currentUser?.profile?.id || null,
+        action: action,
+        entity_type: entityType || null,
+        entity_id: entityId || null,
+        details: details || null
+      });
+    } catch(e) { console.warn('Activity log error:', e); }
+  }
+
+  // ============ LOAD ACTIVITY FEED ============
+  async function loadActivity() {
+    const feed = document.getElementById('activityFeed');
+    const { data, error } = await sb.from('v2-activity-log').select('*').eq('org_id', orgId).order('created_at', { ascending: false }).limit(10);
+    if (error || !data || data.length === 0) {
+      feed.innerHTML = '<div style="padding:20px;color:var(--ink-faint);font-size:12px;text-align:center;">No recent activity</div>';
+      return;
+    }
+    feed.innerHTML = data.map((a, i) => {
+      const isNew = i < 2;
+      const time = timeAgo(a.created_at);
+      return '<div class="activity-item">' +
+        '<span class="activity-dot' + (isNew ? ' new' : '') + '"></span>' +
+        '<div><div class="activity-text">' + (a.message || a.action || '') + '</div>' +
+        '<div class="activity-time">' + time + '</div></div></div>';
+    }).join('');
+  }
+
+  // ============ LOAD GRADING QUEUE ============
+  // ============ TIME AGO HELPER ============
+  function timeAgo(dateStr) {
+    const now = new Date();
+    const d = new Date(dateStr);
+    const diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+    if (diff < 172800) return 'Yesterday';
+    return Math.floor(diff / 86400) + ' days ago';
+  }
+
+  // ============ SEARCH ============
+  const searchInput = document.querySelector('.search-box input');
+  let searchTimeout;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => loadEmployees(searchInput.value.trim()), 300);
+  });
+
+  // ============ ADD EMPLOYEE MODAL ============
+  const addEmpBtn = document.querySelector('#addEmpModal .btn-primary');
+  addEmpBtn.addEventListener('click', async () => {
+    const errEl = document.getElementById('addEmpError');
+    errEl.style.display = 'none';
+
+    const first = document.getElementById('addEmpFirst').value.trim();
+    const last = document.getElementById('addEmpLast').value.trim();
+    const email = document.getElementById('addEmpEmail').value.trim();
+    const empId = document.getElementById('addEmpId').value.trim();
+    const deptId = document.getElementById('addEmpDept').value;
+    const title = document.getElementById('addEmpTitle').value.trim();
+    const joinDate = document.getElementById('empJoinDate').value;
+    const status = document.getElementById('addEmpStatus').value;
+
+    if (!first || !last || !email) {
+      errEl.textContent = 'First name, last name, and email are required.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    addEmpBtn.disabled = true;
+    addEmpBtn.textContent = 'Adding...';
+
+    const { error } = await sb.from('v2-users').insert({
+      org_id: orgId, first_name: first, last_name: last, email: email,
+      employee_id: empId, department_id: deptId || null, job_title: title,
+      join_date: joinDate || null, status: status, role: 'employee'
+    });
+
+    if (error) {
+      errEl.textContent = 'Error: ' + error.message;
+      errEl.style.display = 'block';
+      addEmpBtn.disabled = false;
+      addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
+      return;
+    }
+
+    // Log activity
+    await sb.from('v2-activity-log').insert({
+      org_id: orgId,
+      action: 'employee_added',
+      message: '<strong>' + first + ' ' + last + '</strong> added as employee'
+    });
+
+    document.getElementById('addEmpModal').classList.remove('visible');
+    addEmpBtn.disabled = false;
+    addEmpBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Employee';
+    showToast('Employee added successfully', 'success');
+    logActivity('Added employee ' + (document.getElementById('addEmpFirst').value || '') + ' ' + (document.getElementById('addEmpLast').value || ''), 'employee', null);
+    loadEmployees();
+    loadStats();
+    loadActivity();
+  });
+
+  // ============ CSV UPLOAD ============
+  const csvBtn = document.querySelector('#csvModal .btn-primary');
+  const uploadZone = document.querySelector('.upload-zone');
+  let csvFile = null;
+
+  uploadZone.addEventListener('click', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv';
+    input.onchange = (e) => {
+      csvFile = e.target.files[0];
+      if (csvFile) uploadZone.querySelector('p').textContent = csvFile.name;
+    };
+    input.click();
+  });
+
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.style.borderColor = 'var(--ink)'; });
+  uploadZone.addEventListener('dragleave', () => { uploadZone.style.borderColor = ''; });
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.style.borderColor = '';
+    csvFile = e.dataTransfer.files[0];
+    if (csvFile) uploadZone.querySelector('p').textContent = csvFile.name;
+  });
+
+  csvBtn.addEventListener('click', async () => {
+    if (!csvFile) { showToast('Please select a CSV file first', 'warn'); return; }
+
+    csvBtn.disabled = true;
+    csvBtn.textContent = 'Importing...';
+
+    const text = await csvFile.text();
+    const lines = text.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const rows = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const vals = lines[i].split(',').map(v => v.trim());
+      if (vals.length < 3) continue;
+      const row = {};
+      headers.forEach((h, idx) => { row[h] = vals[idx] || ''; });
+
+      // Map department name to ID
+      let deptId = null;
+      if (row.department) {
+        const match = Object.entries(departmentsMap).find(([id, name]) => name.toLowerCase() === row.department.toLowerCase());
+        if (match) deptId = match[0];
+      }
+
+      rows.push({
+        org_id: orgId,
+        first_name: row.first_name || '',
+        last_name: row.last_name || '',
+        email: row.email || '',
+        employee_id: row.employee_id || '',
+        department_id: deptId,
+        job_title: row.job_title || '',
+        join_date: row.join_date || null,
+        status: 'active',
+        role: 'employee'
+      });
+    }
+
+    if (rows.length === 0) {
+      showToast('No valid rows found in CSV', 'error');
+      csvBtn.disabled = false;
+      csvBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> Upload & Import';
+      return;
+    }
+
+    const { error } = await sb.from('v2-users').insert(rows);
+    if (error) {
+      showToast('Import error: ' + error.message, 'error');
+    } else {
+      await sb.from('v2-activity-log').insert({
+        org_id: orgId, action: 'csv_import',
+        message: '<strong>' + rows.length + ' employees</strong> imported via CSV upload'
+      });
+      showToast(rows.length + ' employees imported successfully', 'success');
+      document.getElementById('csvModal').classList.remove('visible');
+      loadEmployees();
+      loadStats();
+    }
+
+    csvBtn.disabled = false;
+    csvBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> Upload & Import';
+    csvFile = null;
+  });
+
+  // ============ GRADING MODAL ============
+  let currentGradingItem = null;
+
+  // ============ AI ASSIST ============
+  window.runAiAssist = async function() {
+    const btn = document.getElementById('aiAssistBtn');
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:sb-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Grading...';
+
+    try {
+      // Collect rubric criteria from the modal
+      const criteriaEls = document.querySelectorAll('#gradeModal .rubric-score-input');
+      const criteriaLabels = document.querySelectorAll('#gradeModal div[style*="grid-template-columns"] span[style*="font-size:12.5px"]');
+      const maxEls = document.querySelectorAll('#gradeModal div[style*="grid-template-columns"] span[style*="text-align:center"]');
+
+      const rubric = [];
+      criteriaLabels.forEach((label, i) => {
+        const maxEl = maxEls[i];
+        rubric.push({
+          name: label.textContent.trim(),
+          max_score: parseInt(maxEl?.textContent) || 0
+        });
+      });
+
+      const responseText = document.querySelector('#gradeModal div[style*="max-height:180px"]')?.textContent || '';
+
+      const result = await aiGradeScenario(responseText, rubric);
+
+      // Fill in the scores
+      if (result.criteria_scores) {
+        result.criteria_scores.forEach((cs, i) => {
+          if (criteriaEls[i]) criteriaEls[i].value = cs.score;
+        });
+        updateGradeTotal();
+      }
+      // Fill performance notes
+      if (result.performance_notes) {
+        document.querySelector('#gradeModal textarea').value = result.performance_notes;
+      }
+
+      showToast('AI grading complete — review and adjust scores', 'success');
+    } catch (err) {
+      showToast('AI-Assist error: ' + err.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = original;
+  };
+
+  // ============ DELETE ASSESSMENT ============
+  window.deleteAssessment = async function(assessId, title) {
+    if (!confirm('Delete assessment "' + title + '"?\n\nThis will also delete all questions, options, rubric criteria, test cases, and assignments linked to this assessment. This cannot be undone.')) return;
+
+    try {
+      // Delete related data first (child tables)
+      const { data: questions } = await sb.from('v2-questions').select('id').eq('assessment_id', assessId);
+      const qIds = (questions || []).map(q => q.id);
+
+      if (qIds.length) {
+        await sb.from('v2-mcq-options').delete().in('question_id', qIds);
+        await sb.from('v2-rubric-criteria').delete().in('question_id', qIds);
+        await sb.from('v2-test-cases').delete().in('question_id', qIds);
+        await sb.from('v2-questions').delete().eq('assessment_id', assessId);
+      }
+
+      await sb.from('v2-assessment-sections').delete().eq('assessment_id', assessId);
+      await sb.from('v2-assessment-rubric').delete().eq('assessment_id', assessId);
+      await sb.from('v2-assignments').delete().eq('assessment_id', assessId);
+      await sb.from('v2-assessments').delete().eq('id', assessId);
+
+      logActivity('Deleted assessment "' + title + '"', 'assessment', id);
+
+      showToast('Assessment deleted', 'success');
+      loadAssessments();
+      loadStats();
+      loadActivity();
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error');
+    }
+  };
+
+  window.deleteEmployee = async function(userId, name) {
+    if (!confirm('Delete employee "' + name + '"?\n\nThis will remove the employee and all their assignments, sessions, and responses. This cannot be undone.')) return;
+    try {
+      // Delete related data
+      const { data: sessions } = await sb.from('v2-sessions').select('id').eq('user_id', userId);
+      const sessIds = (sessions || []).map(s => s.id);
+      if (sessIds.length) {
+        await sb.from('v2-responses').delete().in('session_id', sessIds);
+        await sb.from('v2-gradings').delete().in('session_id', sessIds);
+        await sb.from('v2-grading-queue').delete().in('session_id', sessIds);
+        await sb.from('v2-integrity-logs').delete().in('session_id', sessIds);
+        await sb.from('v2-sessions').delete().eq('user_id', userId);
+      }
+      await sb.from('v2-assignments').delete().eq('user_id', userId);
+      await sb.from('v2-assessment-otp').delete().eq('user_id', userId);
+      await sb.from('v2-auto-saves').delete().eq('user_id', userId);
+      await sb.from('v2-certificates').delete().eq('user_id', userId);
+      await sb.from('v2-users').delete().eq('id', userId);
+
+      logActivity('Deleted employee "' + name + '"', 'employee', userId);
+
+      showToast('Employee "' + name + '" deleted', 'success');
+      loadEmployees();
+      loadStats();
+      loadActivity();
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error');
+    }
+  };
+
+  window.openGradeModal = function(btn) {
+    const item = btn.closest('.grading-item');
+    currentGradingItem = {
+      queueId: item.dataset.queueId,
+      responseId: item.dataset.responseId,
+      sessionId: item.dataset.sessionId
+    };
+    document.getElementById('gradeEmpName').textContent = item.querySelector('.grading-name').textContent;
+    document.getElementById('gradeAssessDetail').textContent = item.querySelector('.grading-detail').textContent;
+    // Reset scores
+    document.querySelectorAll('#gradeModal .rubric-score-input').forEach(inp => { inp.value = ''; });
+    document.getElementById('gradeTotalScore').textContent = '0';
+    document.getElementById('gradeModal').classList.add('visible');
+  };
+
+  // Rubric score auto-compute
+  window.updateGradeTotal = function() {
+    let total = 0;
+    document.querySelectorAll('#gradeModal .rubric-score-input').forEach(inp => {
+      total += parseInt(inp.value) || 0;
+    });
+    document.getElementById('gradeTotalScore').textContent = total;
+  };
+
+  // Submit grade
+  const submitGradeBtn = document.querySelector('#gradeModal .modal-footer .btn-primary');
+  submitGradeBtn.addEventListener('click', async () => {
+    if (!currentGradingItem) return;
+
+    const scores = [];
+    let totalScore = 0;
+    document.querySelectorAll('#gradeModal .rubric-score-input').forEach(inp => {
+      totalScore += parseInt(inp.value) || 0;
+    });
+
+    const notes = document.querySelector('#gradeModal textarea').value;
+    const current = await getCurrentUser();
+
+    submitGradeBtn.disabled = true;
+    submitGradeBtn.textContent = 'Submitting...';
+
+    // Update response
+    if (currentGradingItem.responseId) {
+      await sb.from('v2-responses').update({
+        manual_score: totalScore,
+        final_score: totalScore,
+        graded_by: current?.profile?.id,
+        graded_at: new Date().toISOString()
+      }).eq('id', currentGradingItem.responseId);
+    }
+
+    // Insert grading record
+    await sb.from('v2-gradings').insert({
+      session_id: currentGradingItem.sessionId,
+      response_id: currentGradingItem.responseId,
+      grader_id: current?.profile?.id,
+      total_score: totalScore,
+      performance_notes: notes,
+      status: 'completed'
+    });
+
+    // Mark queue item complete
+    await sb.from('v2-grading-queue').update({ status: 'completed' }).eq('id', currentGradingItem.queueId);
+
+    document.getElementById('gradeModal').classList.remove('visible');
+    submitGradeBtn.disabled = false;
+    submitGradeBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Submit Grade';
+    showToast('Grade submitted', 'success');
+    // Auto-generate certificate if passing
+    if (currentGradingItem.sessionId) {
+      autoGenerateCertificate(currentGradingItem.sessionId);
+    }
+    loadStats();
+  });
+
+  // ============ REALTIME SUBSCRIPTIONS ============
+  function setupRealtime() {
+    // Submissions live updates
+    sb.channel('grading-queue')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'v2-sessions' }, () => {
+        loadSubmissions();
+        loadStats();
+      })
+      .subscribe();
+
+    // Activity feed live updates
+    sb.channel('activity-feed')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'v2-activity-log' }, (payload) => {
+        loadActivity();
+      })
+      .subscribe();
+
+    // Employee table updates
+    sb.channel('employees')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'v2-users' }, () => {
+        loadEmployees();
+        loadStats();
+      })
+      .subscribe();
+
+    // Assessment updates
+    sb.channel('assessments')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'v2-assessments' }, () => {
+        loadAssessments();
+        loadStats();
+      })
+      .subscribe();
+  }
+
+  // ============ AI ASSESSMENT WIZARD ============
+  let aiWizardStep = 1;
+  let aiSelectedDept = null;
+  let aiSelectedProg = null;
+  let aiDepartmentsCache = [];
+  let aiProgrammesCache = [];
+
+  async function loadAiWizardData() {
+    const [deptRes, progRes] = await Promise.all([
+      sb.from('v2-departments').select('*').eq('org_id', orgId),
+      sb.from('v2-programmes').select('*').eq('org_id', orgId)
+    ]);
+    aiDepartmentsCache = deptRes.data || [];
+    aiProgrammesCache = progRes.data || [];
+
+    const deptList = document.getElementById('aiDeptList');
+    if (aiDepartmentsCache.length === 0) {
+      deptList.innerHTML = '<span style="color:var(--ink-faint);font-size:12px;">No departments found. Add departments in Company Profile.</span>';
+    } else {
+      deptList.innerHTML = aiDepartmentsCache.map(d =>
+        '<button class="ai-dept-btn" data-dept-id="' + d.id + '" data-dept-name="' + d.name + '" onclick="selectAiDept(this)">' + d.name + '</button>'
+      ).join('');
+    }
+
+    const progList = document.getElementById('aiProgList');
+    if (aiProgrammesCache.length === 0) {
+      progList.innerHTML = '<span style="color:var(--ink-faint);font-size:12px;">No programmes found. Add programmes in <a href="admin_company_profile.html" style="color:var(--edstellar);">Company Profile</a>.</span>';
+    } else {
+      progList.innerHTML = aiProgrammesCache.map(p =>
+        '<button class="ai-prog-btn" data-prog-id="' + p.id + '" data-prog-name="' + p.name + '" onclick="selectAiProg(this)">' +
+        '<div style="font-weight:500;">' + p.name + '</div>' +
+        (p.description ? '<div style="font-size:11px;color:var(--ink-mute);margin-top:2px;">' + p.description + '</div>' : '') +
+        '</button>'
+      ).join('');
+    }
+  }
+
+  window.selectAiDept = function(btn) {
+    document.querySelectorAll('.ai-dept-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    aiSelectedDept = { id: btn.dataset.deptId, name: btn.dataset.deptName };
+  };
+
+  window.selectAiProg = function(btn) {
+    document.querySelectorAll('.ai-prog-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    aiSelectedProg = { id: btn.dataset.progId, name: btn.dataset.progName };
+  };
+
+  document.getElementById('aiIncCoding').addEventListener('change', function() {
+    document.getElementById('aiCodingLangGroup').style.display = this.checked ? '' : 'none';
+  });
+
+  function updateWizardUI() {
+    document.querySelectorAll('.ai-wiz-step').forEach(s => {
+      const step = parseInt(s.dataset.step);
+      s.classList.remove('active', 'done');
+      if (step === aiWizardStep) s.classList.add('active');
+      else if (step < aiWizardStep) s.classList.add('done');
+    });
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById('aiStep' + i).style.display = i === aiWizardStep ? '' : 'none';
+    }
+    document.getElementById('aiPrevBtn').style.display = aiWizardStep > 1 && aiWizardStep < 5 ? '' : 'none';
+    document.getElementById('aiNextBtn').style.display = aiWizardStep < 5 ? '' : 'none';
+    document.getElementById('aiGenerateBtn').style.display = aiWizardStep === 5 ? '' : 'none';
+
+    if (aiWizardStep === 5) {
+      const topic = aiSelectedProg?.name || 'General';
+      const types = [];
+      if (document.getElementById('aiIncMcq').checked) types.push('MCQ');
+      if (document.getElementById('aiIncScenario').checked) types.push('Scenario/Essay');
+      if (document.getElementById('aiIncCoding').checked) types.push('Coding');
+      document.getElementById('aiSummary').innerHTML =
+        '<div style="display:grid;grid-template-columns:120px 1fr;gap:6px 12px;">' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Department</span><span>' + (aiSelectedDept?.name || 'All') + '</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Programme</span><span>' + topic + '</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Title</span><span>' + (document.getElementById('aiAssessTitle').value || '<em style="color:var(--ink-faint);">AI will generate</em>') + '</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Duration</span><span>' + document.getElementById('aiDuration').value + ' minutes</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Passing score</span><span>' + document.getElementById('aiPassing').value + '%</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Difficulty</span><span style="text-transform:capitalize;">' + document.getElementById('aiDifficulty').value + '</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Questions</span><span>' + document.getElementById('aiTotalQuestions').value + ' (' + types.join(', ') + ')</span>' +
+        '<span style="color:var(--ink-mute);font-weight:600;">Sections</span><span style="color:var(--ink-faint);font-style:italic;">AI will generate based on programme</span>' +
+        '</div>';
+
+      document.getElementById('aiGenPending').style.display = '';
+      document.getElementById('aiGenLoading').style.display = 'none';
+      document.getElementById('aiGenDone').style.display = 'none';
+    }
+  }
+
+  window.aiWizardNav = function(dir) {
+    if (dir === 1) {
+      if (aiWizardStep === 1 && !aiSelectedDept) { showToast('Please select a department', 'warn'); return; }
+      if (aiWizardStep === 2 && !aiSelectedProg) { showToast('Please select a programme', 'warn'); return; }
+      if (aiWizardStep === 4) {
+        const anyType = document.getElementById('aiIncMcq').checked || document.getElementById('aiIncScenario').checked || document.getElementById('aiIncCoding').checked;
+        if (!anyType) { showToast('Select at least one question type', 'warn'); return; }
+      }
+    }
+    aiWizardStep = Math.max(1, Math.min(5, aiWizardStep + dir));
+    updateWizardUI();
+  };
+
+  window.closeAiWizard = function() {
+    document.getElementById('aiAssessModal').classList.remove('visible');
+    aiWizardStep = 1; aiSelectedDept = null; aiSelectedProg = null;
+    document.querySelectorAll('.ai-dept-btn, .ai-prog-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('aiAssessTitle').value = '';
+    document.getElementById('aiDuration').value = '60';
+    document.getElementById('aiPassing').value = '70';
+    document.getElementById('aiMaxAttempts').value = '1';
+    document.getElementById('aiTotalQuestions').value = '10';
+    document.getElementById('aiExtraInstructions').value = '';
+    document.getElementById('aiIncMcq').checked = true;
+    document.getElementById('aiIncScenario').checked = true;
+    document.getElementById('aiIncCoding').checked = false;
+    document.getElementById('aiCodingLangGroup').style.display = 'none';
+    document.getElementById('aiWizardFooter').style.display = '';
+    updateWizardUI();
+  };
+
+  window.generateAiAssessment = async function() {
+    const genBtn = document.getElementById('aiGenerateBtn');
+    genBtn.disabled = true;
+    document.getElementById('aiGenPending').style.display = 'none';
+    document.getElementById('aiGenLoading').style.display = '';
+    document.getElementById('aiGenDone').style.display = 'none';
+    document.getElementById('aiWizardFooter').style.display = 'none';
+
+    try {
+      const topic = aiSelectedProg?.name || 'General';
+      const title = document.getElementById('aiAssessTitle').value.trim();
+      const duration = parseInt(document.getElementById('aiDuration').value) || 60;
+      const passing = parseInt(document.getElementById('aiPassing').value) || 70;
+      const maxAttempts = parseInt(document.getElementById('aiMaxAttempts').value) || 1;
+      const difficulty = document.getElementById('aiDifficulty').value;
+      const negMarking = document.getElementById('aiNegMarking').value;
+      const autoSave = parseInt(document.getElementById('aiAutoSave').value) || 30;
+      const proctoring = document.getElementById('aiProctoring').value;
+      const totalQuestions = parseInt(document.getElementById('aiTotalQuestions').value) || 10;
+      const includeMcq = document.getElementById('aiIncMcq').checked;
+      const includeScenario = document.getElementById('aiIncScenario').checked;
+      const includeCoding = document.getElementById('aiIncCoding').checked;
+      const codingLang = document.getElementById('aiCodingLang').value;
+      const extraInstructions = document.getElementById('aiExtraInstructions').value.trim();
+
+      const questionTypes = [];
+      if (includeMcq) questionTypes.push('mcq');
+      if (includeScenario) questionTypes.push('scenario');
+      if (includeCoding) questionTypes.push('coding');
+
+      document.getElementById('aiGenStatus').textContent = 'Crafting AI prompt...';
+
+      const aiPrompt = `Generate a complete assessment for a corporate training programme.
+
+CONTEXT:
+- Department: ${aiSelectedDept?.name || 'General'}
+- Programme/Topic: ${topic}
+- Difficulty: ${difficulty}
+- Total questions: ${totalQuestions}
+- Question types allowed: ${questionTypes.join(', ')}
+${includeCoding ? '- Coding language: ' + codingLang : ''}
+${extraInstructions ? '- Additional instructions: ' + extraInstructions : ''}
+
+REQUIREMENTS:
+1. Generate a title if not provided. Provided title: "${title || ''}"
+2. Generate appropriate sections based on the department and programme, then distribute questions across them
+3. For MCQ: provide 4 options (A-D) with exactly one correct answer, plus an explanation
+4. For Scenario/Essay: provide a realistic corporate scenario context, rubric criteria with point values, and a word limit
+5. For Coding: provide a function signature, starter code, and test cases (visible + hidden)
+6. Each question needs: prompt text, points value (2-10), competency tag, section, and type
+
+COMPETENCY OPTIONS: AI strategy & governance, Risk & UAE PDPL compliance, Prompt engineering, Pilot-to-production workflow, Change management, UAE AI landscape, Coding & automation
+
+Return valid JSON (no markdown) with this exact structure:
+{
+  "title": "Assessment Title",
+  "description": "Brief assessment description",
+  "sections": ["Section1", "Section2"],
+  "questions": [
+    {
+      "type": "mcq",
+      "section": "Section Name",
+      "prompt": "Question text",
+      "points": 3,
+      "competency": "Competency name",
+      "explanation": "Why correct answer is correct",
+      "options": [
+        {"label": "A", "text": "Option text", "is_correct": true},
+        {"label": "B", "text": "Option text", "is_correct": false},
+        {"label": "C", "text": "Option text", "is_correct": false},
+        {"label": "D", "text": "Option text", "is_correct": false}
+      ]
+    },
+    {
+      "type": "scenario",
+      "section": "Section Name",
+      "prompt": "Question text",
+      "points": 8,
+      "competency": "Competency name",
+      "explanation": "Grading guidance",
+      "scenario_context": "Detailed scenario description",
+      "word_limit": 500,
+      "rubric_criteria": [
+        {"name": "Criterion", "max_score": 4}
+      ]
+    },
+    {
+      "type": "coding",
+      "section": "Section Name",
+      "prompt": "Question text",
+      "points": 10,
+      "competency": "Coding & automation",
+      "explanation": "Solution approach",
+      "coding_language": "${codingLang}",
+      "function_signature": "function_name(params)",
+      "starter_code": "def function_name(params):\\n    pass",
+      "visible_tests": [{"name": "Test 1", "input": "input", "expected": "output"}],
+      "hidden_tests": [{"name": "Hidden 1", "input": "input", "expected": "output"}],
+      "visible_test_points": 6,
+      "hidden_test_points": 14
+    }
+  ]
+}`;
+
+      document.getElementById('aiGenStatus').textContent = 'Fetching AI configuration...';
+
+      // Get OpenRouter key and model from v2-settings
+      const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+      let openrouterKey = '';
+      let aiModel = 'anthropic/claude-sonnet-4';
+      (settingsRows || []).forEach(row => {
+        let val = row.value;
+        if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+        if (row.key === 'openrouterKey' || row.key === 'openrouter_key') openrouterKey = val;
+        if (row.key === 'routeQuestions' || row.key === 'route_questions') aiModel = val;
+      });
+
+      if (!openrouterKey) throw new Error('OpenRouter API key not configured. Go to Settings to add it.');
+
+      document.getElementById('aiGenStatus').textContent = 'AI is generating questions...';
+
+      // Call OpenRouter directly
+      const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + openrouterKey,
+          'Content-Type': 'application/json',
+          'X-Title': 'Edstellar Assessment Platform'
+        },
+        body: JSON.stringify({
+          model: aiModel,
+          messages: [
+            { role: 'system', content: 'You are an expert corporate training assessment designer. Generate comprehensive, professional assessments with well-structured questions. Always respond with valid JSON only — no markdown, no code fences, no extra text.' },
+            { role: 'user', content: aiPrompt }
+          ],
+          temperature: 0.4,
+          max_tokens: 8192,
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (!orResponse.ok) {
+        const errText = await orResponse.text();
+        throw new Error('OpenRouter API error (' + orResponse.status + '): ' + errText.substring(0, 200));
+      }
+
+      const orData = await orResponse.json();
+      const aiResultText = orData.choices?.[0]?.message?.content || '{}';
+
+      let generated;
+      try {
+        generated = JSON.parse(aiResultText);
+      } catch (e) {
+        const jsonMatch = aiResultText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) generated = JSON.parse(jsonMatch[0]);
+        else throw new Error('AI returned invalid JSON');
+      }
+
+      document.getElementById('aiGenStatus').textContent = 'Saving assessment to database...';
+
+      const { count: assessCount } = await sb.from('v2-assessments').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+      const assessNum = String((assessCount || 0) + 1).padStart(3, '0');
+      const assessmentIdStr = 'ASM-' + assessNum;
+
+      const assessData = {
+        org_id: orgId,
+        title: generated.title || title || topic + ' Assessment',
+        description: generated.description || '',
+        duration_minutes: duration,
+        passing_score: passing,
+        total_points: 0,
+        assessment_id: assessmentIdStr,
+        department_id: aiSelectedDept?.id || null,
+        programme_id: aiSelectedProg?.id || null,
+        max_attempts: maxAttempts,
+        negative_marking: negMarking,
+        auto_save_interval: autoSave,
+        proctoring_enabled: proctoring === 'enabled',
+        status: 'draft'
+      };
+
+      const { data: createdAssess, error: assessErr } = await sb.from('v2-assessments').insert(assessData).select().single();
+      if (assessErr) throw new Error('Failed to create assessment: ' + assessErr.message);
+
+      const newAssessmentId = createdAssess.id;
+
+      document.getElementById('aiGenStatus').textContent = 'Creating sections...';
+      const sectionNames = generated.sections || [];
+      const sectionIdMap = {};
+
+      for (let i = 0; i < sectionNames.length; i++) {
+        const { data: sect } = await sb.from('v2-assessment-sections').insert({
+          assessment_id: newAssessmentId, name: sectionNames[i], sort_order: i + 1
+        }).select().single();
+        if (sect) sectionIdMap[sectionNames[i]] = sect.id;
+      }
+
+      document.getElementById('aiGenStatus').textContent = 'Creating questions...';
+      let totalPoints = 0;
+      const questions = generated.questions || [];
+
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        const pts = q.points || 3;
+        totalPoints += pts;
+
+        // Normalize type to lowercase for consistent matching
+        const qType = (q.type || q.question_type || 'mcq').toLowerCase();
+        // Normalize options: AI may use options, choices, or answers
+        const qOptions = q.options || q.choices || q.answers || [];
+
+        const qData = {
+          assessment_id: newAssessmentId, section_id: sectionIdMap[q.section] || null,
+          prompt: q.prompt, question_type: qType, points: pts,
+          competency: q.competency || '', explanation: q.explanation || '',
+          question_number: i + 1, sort_order: i + 1
+        };
+        if (qType === 'scenario') { qData.scenario_context = q.scenario_context || ''; qData.word_limit = q.word_limit || 500; }
+        if (qType === 'coding') {
+          qData.coding_language = q.coding_language || codingLang;
+          qData.function_signature = q.function_signature || '';
+          qData.starter_code = q.starter_code || '';
+          qData.visible_test_points = q.visible_test_points || 6;
+          qData.hidden_test_points = q.hidden_test_points || 14;
+        }
+
+        const { data: newQ, error: qErr } = await sb.from('v2-questions').insert(qData).select().single();
+        if (qErr) { console.warn('Question insert error:', qErr.message); continue; }
+
+        if (qType === 'mcq' && qOptions.length > 0 && newQ) {
+          const opts = qOptions.map((o, idx) => ({
+            question_id: newQ.id, option_key: o.label || o.option_key || String.fromCharCode(65 + idx),
+            option_text: o.text || o.option_text || o.content || '',
+            is_correct: o.is_correct === true || o.correct === true || false,
+            sort_order: idx + 1
+          }));
+          const { error: optErr } = await sb.from('v2-mcq-options').insert(opts);
+          if (optErr) console.warn('MCQ options insert error:', optErr.message);
+        }
+
+        if (qType === 'scenario' && q.rubric_criteria && newQ) {
+          const criteria = q.rubric_criteria.map((c, idx) => ({
+            question_id: newQ.id, name: c.name, max_score: c.max_score || 0, sort_order: idx + 1
+          }));
+          await sb.from('v2-rubric-criteria').insert(criteria);
+        }
+
+        if (qType === 'coding' && newQ) {
+          const testCases = [];
+          (q.visible_tests || []).forEach((t, idx) => {
+            testCases.push({ question_id: newQ.id, test_name: t.name, input_data: t.input, expected_output: t.expected, is_hidden: false, sort_order: idx + 1 });
+          });
+          (q.hidden_tests || []).forEach((t, idx) => {
+            testCases.push({ question_id: newQ.id, test_name: t.name, input_data: t.input, expected_output: t.expected, is_hidden: true, sort_order: (q.visible_tests || []).length + idx + 1 });
+          });
+          if (testCases.length) await sb.from('v2-test-cases').insert(testCases);
+        }
+
+        document.getElementById('aiGenStatus').textContent = 'Creating questions... (' + (i + 1) + '/' + questions.length + ')';
+      }
+
+      await sb.from('v2-assessments').update({ total_points: totalPoints }).eq('id', newAssessmentId);
+
+      document.getElementById('aiGenStatus').textContent = 'Creating rubric...';
+      for (const sName of sectionNames) {
+        const sectionPts = questions.filter(q => q.section === sName).reduce((s, q) => s + (q.points || 0), 0);
+        if (sectionPts > 0) {
+          await sb.from('v2-assessment-rubric').insert({
+            assessment_id: newAssessmentId, section_name: sName, max_points: sectionPts,
+            weight_pct: Math.round(sectionPts / totalPoints * 100), sort_order: sectionNames.indexOf(sName) + 1
+          });
+        }
+      }
+
+      // Store full AI-generated data for reliable fallback
+      await sb.from('v2-ai-assessment-data').insert({
+        assessment_id: newAssessmentId,
+        org_id: orgId,
+        generated_json: generated
+      });
+
+      await sb.from('v2-activity-log').insert({
+        org_id: orgId, action: 'assessment_created',
+        message: '<strong>AI-generated assessment</strong> "' + (generated.title || assessData.title) + '" created with ' + questions.length + ' questions'
+      });
+
+      document.getElementById('aiGenLoading').style.display = 'none';
+      document.getElementById('aiGenDone').style.display = '';
+      document.getElementById('aiGenResult').textContent = questions.length + ' questions across ' + sectionNames.length + ' sections · ' + totalPoints + ' points';
+      document.getElementById('aiEditLink').href = 'admin_assessment_editor.html?id=' + newAssessmentId;
+
+      // Render detailed question preview with expand/collapse
+      const editorUrl = 'admin_assessment_editor.html?id=' + newAssessmentId;
+      let previewHtml = '';
+      let currentSection = '';
+      questions.forEach((q, i) => {
+        if (q.section !== currentSection) {
+          currentSection = q.section;
+          previewHtml += '<div style="padding:8px 14px;background:var(--paper-warm);border-bottom:1px solid var(--rule);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-mute);font-weight:600;">' + currentSection + '</div>';
+        }
+        const typeClass = (q.type || q.question_type || 'mcq').toLowerCase();
+        const typeLabel = typeClass === 'mcq' ? 'MCQ' : typeClass === 'scenario' ? 'Scenario' : 'Coding';
+        const qId = 'aiPreviewQ' + i;
+
+        // Question header row (always visible, clickable to expand)
+        previewHtml += '<div style="border-bottom:1px solid var(--rule-soft);">';
+        previewHtml += '<div onclick="document.getElementById(\'' + qId + '\').style.display=document.getElementById(\'' + qId + '\').style.display===\'none\'?\'\':\'none\';this.querySelector(\'.ai-expand-icon\').textContent=document.getElementById(\'' + qId + '\').style.display===\'none\'?\'+\':\'-\'" style="padding:12px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background=\'var(--paper-warm)\'" onmouseout="this.style.background=\'\'">';
+        previewHtml += '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:600;color:var(--ink-faint);width:22px;flex-shrink:0;">' + String(i + 1).padStart(2, '0') + '</span>';
+        previewHtml += '<span class="q-type-tag ' + typeClass + '" style="flex-shrink:0;">' + typeLabel + '</span>';
+        previewHtml += '<span style="font-size:12px;color:var(--ink);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (q.prompt || '').substring(0, 80) + (q.prompt?.length > 80 ? '...' : '') + '</span>';
+        previewHtml += '<span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--ink-faint);flex-shrink:0;">' + (q.points || 0) + ' pts</span>';
+        previewHtml += '<span class="ai-expand-icon" style="font-family:\'JetBrains Mono\',monospace;font-size:14px;color:var(--ink-faint);width:18px;text-align:center;flex-shrink:0;">+</span>';
+        previewHtml += '</div>';
+
+        // Expanded detail (hidden by default)
+        previewHtml += '<div id="' + qId + '" style="display:none;padding:0 14px 14px 44px;">';
+
+        // Full question text
+        previewHtml += '<div style="font-size:12.5px;color:var(--ink);line-height:1.6;margin-bottom:10px;">' + (q.prompt || '') + '</div>';
+
+        // Competency
+        if (q.competency) {
+          previewHtml += '<div style="margin-bottom:8px;"><span style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;">Competency:</span> <span style="font-size:11px;color:var(--ink-mute);">' + q.competency + '</span></div>';
+        }
+
+        // MCQ options
+        const previewOpts = q.options || q.choices || q.answers || [];
+        if (typeClass === 'mcq' && previewOpts.length > 0) {
+          previewHtml += '<div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">';
+          previewOpts.forEach(o => {
+            const isCorrect = o.is_correct === true || o.correct === true;
+            const optLabel = o.label || o.option_key || '';
+            const optText = o.text || o.option_text || o.content || '';
+            previewHtml += '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:11.5px;' +
+              (isCorrect ? 'background:var(--ok-soft);border:1px solid #c5e0ce;' : 'background:var(--paper-warm);border:1px solid var(--rule);') + '">';
+            previewHtml += '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px;font-weight:700;color:' + (isCorrect ? 'var(--ok)' : 'var(--ink-faint)') + ';width:16px;">' + optLabel + '</span>';
+            previewHtml += '<span style="color:' + (isCorrect ? 'var(--ok)' : 'var(--ink-soft)') + ';flex:1;">' + optText + '</span>';
+            if (isCorrect) previewHtml += '<span style="font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ok);font-weight:600;flex-shrink:0;">Correct</span>';
+            previewHtml += '</div>';
+          });
+          previewHtml += '</div>';
+        }
+
+        // Scenario fields
+        if (typeClass === 'scenario') {
+          if (q.scenario_context) {
+            previewHtml += '<div style="padding:10px 12px;background:var(--paper-warm);border:1px solid var(--rule);font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;line-height:1.6;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;margin-bottom:6px;">Scenario context</div>' + q.scenario_context + '</div>';
+          }
+          if (q.rubric_criteria && q.rubric_criteria.length) {
+            previewHtml += '<div style="margin-bottom:8px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;margin-bottom:6px;">Rubric criteria</div>';
+            previewHtml += '<div style="display:flex;flex-direction:column;gap:4px;">';
+            q.rubric_criteria.forEach(c => {
+              previewHtml += '<div style="display:flex;justify-content:space-between;padding:5px 10px;background:var(--accent-soft);border:1px solid #e8c0a3;font-size:11px;"><span style="color:var(--accent);">' + c.name + '</span><span style="font-family:\'JetBrains Mono\',monospace;font-size:10px;color:var(--accent);font-weight:600;">' + c.max_score + ' pts</span></div>';
+            });
+            previewHtml += '</div></div>';
+          }
+          if (q.word_limit) previewHtml += '<div style="font-size:10px;color:var(--ink-faint);margin-bottom:8px;">Word limit: <strong>' + q.word_limit + '</strong></div>';
+        }
+
+        // Coding fields
+        if (typeClass === 'coding') {
+          if (q.coding_language) previewHtml += '<div style="margin-bottom:6px;"><span style="font-size:10px;padding:3px 8px;background:var(--ok-soft);border:1px solid #c5e0ce;color:var(--ok);font-weight:600;">' + q.coding_language + '</span></div>';
+          if (q.function_signature) {
+            previewHtml += '<div style="padding:8px 12px;background:#1e1e2e;color:#a6e3a1;font-family:\'JetBrains Mono\',monospace;font-size:11px;margin-bottom:8px;border-radius:2px;">' + q.function_signature + '</div>';
+          }
+          if (q.starter_code) {
+            previewHtml += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;margin-bottom:4px;">Starter code</div>';
+            previewHtml += '<pre style="padding:8px 12px;background:#1e1e2e;color:#cdd6f4;font-family:\'JetBrains Mono\',monospace;font-size:10.5px;margin-bottom:8px;overflow-x:auto;white-space:pre-wrap;border-radius:2px;">' + q.starter_code.replace(/</g,'&lt;') + '</pre>';
+          }
+          if (q.visible_tests && q.visible_tests.length) {
+            previewHtml += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);font-weight:600;margin-bottom:4px;">Test cases</div>';
+            previewHtml += '<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;">';
+            q.visible_tests.forEach(t => {
+              previewHtml += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:10px;padding:4px 8px;background:var(--paper-warm);border:1px solid var(--rule);"><span>' + t.name + '</span><span style="color:var(--ink-mute);">In: ' + t.input + '</span><span style="color:var(--ok);">Out: ' + t.expected + '</span></div>';
+            });
+            previewHtml += '</div>';
+          }
+          if (q.hidden_tests && q.hidden_tests.length) {
+            previewHtml += '<div style="font-size:10px;color:var(--ink-faint);">' + q.hidden_tests.length + ' hidden test case(s)</div>';
+          }
+        }
+
+        // Explanation
+        if (q.explanation) {
+          previewHtml += '<div style="margin-top:8px;padding:8px 12px;background:var(--edstellar-mist);border:1px solid #c5d5f5;font-size:11px;color:var(--edstellar);line-height:1.5;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:4px;">Explanation</div>' + q.explanation + '</div>';
+        }
+
+        // Edit button
+        previewHtml += '<div style="margin-top:10px;"><a href="' + editorUrl + '" class="btn btn-ghost btn-sm" style="font-size:10px;padding:4px 10px;" target="_self"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit in Editor</a></div>';
+
+        previewHtml += '</div>'; // end detail
+        previewHtml += '</div>'; // end question wrapper
+      });
+
+      document.getElementById('aiGenPreview').innerHTML = previewHtml;
+
+      loadAssessments();
+      loadStats();
+
+    } catch (err) {
+      console.error('AI generation error:', err);
+      document.getElementById('aiGenLoading').style.display = 'none';
+      document.getElementById('aiGenPending').style.display = '';
+      document.getElementById('aiWizardFooter').style.display = '';
+      genBtn.disabled = false;
+      showToast('AI generation failed: ' + err.message, 'error');
+    }
+  };
+
+  const aiModalObserver = new MutationObserver(() => {
+    if (document.getElementById('aiAssessModal').classList.contains('visible')) {
+      loadAiWizardData();
+    }
+  });
+  aiModalObserver.observe(document.getElementById('aiAssessModal'), { attributes: true, attributeFilter: ['class'] });
+
+  // ============ LOAD COMPLETED SUBMISSIONS ============
+  let currentResultSession = null;
+  let currentResultData = null;
+  let emailSvc = null;
+
+  async function initEmailSvc() {
+    if (emailSvc) return;
+    const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+    let webAppUrl = 'https://script.google.com/macros/s/AKfycbzS2fUP8m6TMccSJZnMMRRbqvSuY0NZO5Dxy3_16SWl29wWXBrrqaVwPzF_AvZZCXRT/exec';
+    (settingsRows || []).forEach(row => {
+      let val = row.value;
+      if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+      if (row.key === 'email_webapp_url') webAppUrl = val;
+    });
+    emailSvc = new EmailService(webAppUrl);
+  }
+
+  async function loadSubmissions() {
+    const container = document.getElementById('submissionsList');
+    const { data: sessions, error } = await sb.from('v2-sessions')
+      .select('*, "v2-users"(id, first_name, last_name, email), "v2-assessments"(id, title, passing_score, total_points)')
+      .in('status', ['submitted', 'graded'])
+      .order('submitted_at', { ascending: false })
+      .limit(10);
+
+    if (error || !sessions || sessions.length === 0) {
+      container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">No completed submissions yet</div>';
+      document.getElementById('submissionsMeta').textContent = '0 submissions';
+      return;
+    }
+
+    document.getElementById('submissionsMeta').textContent = sessions.length + ' submissions';
+    container.innerHTML = sessions.map(s => {
+      const user = s['v2-users'] || {};
+      const assess = s['v2-assessments'] || {};
+      const name = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
+      const submitted = s.submitted_at ? timeAgo(s.submitted_at) : 'Not submitted';
+      const isGraded = s.status === 'graded';
+      const score = s.total_score != null ? s.total_score : '--';
+      const total = assess.total_points || '--';
+      return '<div style="padding:12px 18px;border-bottom:1px solid var(--rule-soft);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">' +
+        '<div>' +
+          '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + name + '</div>' +
+          '<div style="font-size:11px;color:var(--ink-mute);">' + (assess.title || 'Assessment') + ' &middot; ' + submitted + '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px;align-items:center;">' +
+          (isGraded ? '<span style="font-family:\'JetBrains Mono\',monospace;font-size:12px;font-weight:600;color:var(--ok);">' + score + '/' + total + '</span>' : '') +
+          '<span class="status-tag ' + (isGraded ? 'published' : 'draft') + '">' + (isGraded ? 'Graded' : 'Pending Review') + '</span>' +
+          '<a href="admin_assessment_report.html?session=' + s.id + '" class="btn btn-sm btn-primary">Review</a>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // ============ RESULTS MODAL ============
+  window.openResultsModal = async function(sessionId) {
+    currentResultSession = sessionId;
+    document.getElementById('resultsModal').classList.add('visible');
+    const qList = document.getElementById('resQuestionList');
+    qList.innerHTML = '<div style="text-align:center;color:var(--ink-faint);font-size:12px;padding:20px;">Loading results...</div>';
+
+    // Load session with user and assessment info
+    const { data: session } = await sb.from('v2-sessions')
+      .select('*, "v2-users"(id, first_name, last_name, email), "v2-assessments"(id, title, passing_score, total_points)')
+      .eq('id', sessionId).single();
+
+    if (!session) { qList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--ink-faint);">Session not found</div>'; return; }
+
+    const user = session['v2-users'] || {};
+    const assess = session['v2-assessments'] || {};
+    currentResultData = { session, user, assess };
+
+    document.getElementById('resParticipant').textContent = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
+    document.getElementById('resAssessTitle').textContent = assess.title || 'Assessment';
+
+    // Load responses with questions and mcq options
+    const { data: responses } = await sb.from('v2-responses')
+      .select('*, "v2-questions"(*, "v2-mcq-options"(*))')
+      .eq('session_id', sessionId)
+      .order('created_at');
+
+    // Load gradings if exist
+    const { data: gradings } = await sb.from('v2-gradings')
+      .select('*')
+      .eq('session_id', sessionId);
+
+    const gradingMap = {};
+    (gradings || []).forEach(g => { gradingMap[g.question_id] = g; });
+
+    let totalScore = 0;
+    const totalPoints = assess.total_points || 0;
+    const questionResults = [];
+
+    let html = '';
+    (responses || []).forEach((r, i) => {
+      const q = r['v2-questions'] || {};
+      const grading = gradingMap[q.id];
+      const qType = q.question_type || 'mcq';
+      const pts = grading ? (grading.points_awarded || 0) : 0;
+      totalScore += pts;
+
+      // Determine user answer and correct answer
+      let userAnswer = '';
+      let correctAnswer = '';
+      let isCorrect = false;
+
+      if (qType === 'mcq') {
+        const opts = (q['v2-mcq-options'] || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        const selectedOpt = opts.find(o => o.id === r.mcq_selected);
+        const correctOpt = opts.find(o => !!o.is_correct);
+        userAnswer = selectedOpt ? selectedOpt.option_key + '. ' + selectedOpt.option_text : 'Not answered';
+        correctAnswer = correctOpt ? correctOpt.option_key + '. ' + correctOpt.option_text : '';
+        isCorrect = selectedOpt && correctOpt && selectedOpt.id === correctOpt.id;
+      } else if (qType === 'scenario') {
+        userAnswer = r.essay_text ? r.essay_text.substring(0, 200) + (r.essay_text.length > 200 ? '...' : '') : 'Not answered';
+      } else if (qType === 'coding') {
+        userAnswer = r.code_text ? 'Code submitted (' + r.code_text.length + ' chars)' : 'Not answered';
+      }
+
+      questionResults.push({
+        prompt: q.prompt, type: qType, user_answer: userAnswer, correct_answer: correctAnswer,
+        is_correct: isCorrect, points_earned: pts, max_points: q.points || 0, explanation: q.explanation
+      });
+
+      const icon = grading ? (isCorrect || pts > 0 ? '&#10003;' : '&#10007;') : '&#8212;';
+      const color = grading ? (isCorrect || pts > 0 ? 'var(--ok)' : 'var(--bad)') : 'var(--ink-faint)';
+      const bg = grading ? (isCorrect || pts > 0 ? 'var(--ok-soft)' : '#fef2f2') : 'var(--paper-warm)';
+
+      html += '<div style="border:1px solid var(--rule);margin-bottom:6px;padding:12px 14px;background:' + bg + ';">' +
+        '<div style="display:flex;gap:10px;align-items:flex-start;">' +
+          '<span style="font-size:16px;color:' + color + ';flex-shrink:0;">' + icon + '</span>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:12px;color:var(--ink);font-weight:500;margin-bottom:3px;">Q' + (i + 1) + '. ' + (q.prompt || '').substring(0, 120) + '</div>' +
+            '<div style="font-size:11px;color:var(--ink-mute);margin-bottom:2px;">Answer: ' + userAnswer + '</div>' +
+            (correctAnswer ? '<div style="font-size:11px;color:var(--ok);">Correct: ' + correctAnswer + '</div>' : '') +
+            '<div style="font-size:10px;color:var(--ink-faint);margin-top:3px;">' + pts + '/' + (q.points || 0) + ' pts &middot; ' + qType.toUpperCase() + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    currentResultData.questionResults = questionResults;
+    currentResultData.totalScore = totalScore;
+    qList.innerHTML = html || '<div style="padding:20px;text-align:center;color:var(--ink-faint);font-size:12px;">No responses found</div>';
+
+    // Update score display
+    const isGraded = session.status === 'graded';
+    const displayScore = isGraded ? (session.total_score || totalScore) : totalScore;
+    document.getElementById('resScore').textContent = displayScore + '/' + totalPoints;
+    const passed = totalPoints > 0 && (displayScore / totalPoints * 100) >= (assess.passing_score || 70);
+    const statusEl = document.getElementById('resStatus');
+    statusEl.textContent = isGraded ? (passed ? 'PASSED' : 'NOT PASSED') : 'PENDING';
+    statusEl.style.cssText = 'padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;' +
+      (isGraded ? (passed ? 'background:var(--ok-soft);color:var(--ok);border:1px solid #c5e0ce;' : 'background:#fef2f2;color:var(--bad);border:1px solid #f5c5c5;') : 'background:var(--paper-warm);color:var(--ink-mute);border:1px solid var(--rule);');
+
+    // Show/hide buttons
+    document.getElementById('resGradeBtn').style.display = isGraded ? 'none' : '';
+    document.getElementById('resSendBtn').style.display = isGraded ? '' : 'none';
+  };
+
+  // ============ AI GRADING FOR SUBMISSIONS ============
+  window.runAiGrading = async function() {
+    if (!currentResultSession || !currentResultData) return;
+    const btn = document.getElementById('resGradeBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83"/></svg> Grading...';
+    document.getElementById('resGradingStatus').style.display = '';
+
+    try {
+      const { session, assess } = currentResultData;
+
+      // Load responses for grading
+      const { data: responses } = await sb.from('v2-responses')
+        .select('*, "v2-questions"(*, "v2-mcq-options"(*))')
+        .eq('session_id', currentResultSession);
+
+      let totalScore = 0;
+      const allFeedback = [];
+
+      for (const r of (responses || [])) {
+        const q = r['v2-questions'] || {};
+        const qType = q.question_type || 'mcq';
+        let pts = 0;
+        let feedback = '';
+
+        if (qType === 'mcq') {
+          // Auto-grade MCQ
+          const opts = q['v2-mcq-options'] || [];
+          const correct = opts.find(o => !!o.is_correct);
+          if (correct && r.mcq_selected === correct.id) {
+            pts = q.points || 0;
+            feedback = 'Correct answer selected.';
+          } else {
+            pts = 0;
+            feedback = 'Incorrect. ' + (q.explanation || '');
+          }
+        } else {
+          // For scenario/coding — use AI grading via OpenRouter
+          const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+          let openrouterKey = '', aiModel = 'anthropic/claude-sonnet-4';
+          (settingsRows || []).forEach(row => {
+            let val = row.value;
+            if (typeof val === 'string') { try { val = JSON.parse(val); } catch(e) {} }
+            if (row.key === 'openrouterKey' || row.key === 'openrouter_key') openrouterKey = val;
+            if (row.key === 'routeGrading' || row.key === 'route_grading') aiModel = val;
+          });
+
+          if (openrouterKey) {
+            const userAnswer = qType === 'scenario' ? (r.essay_text || '') : (r.code_text || '');
+            const gradingPrompt = 'Grade this ' + qType + ' answer.\n\nQuestion: ' + (q.prompt || '') +
+              (q.scenario_context ? '\n\nScenario: ' + q.scenario_context : '') +
+              '\n\nStudent answer:\n' + userAnswer +
+              '\n\nMax points: ' + (q.points || 0) +
+              '\n\nRespond in JSON: {"points": <number>, "feedback": "<text>"}';
+
+            try {
+              const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST', headers: { 'Authorization': 'Bearer ' + openrouterKey, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: aiModel, messages: [
+                  { role: 'system', content: 'You are an expert grader. Grade the answer and return JSON with points and feedback.' },
+                  { role: 'user', content: gradingPrompt }
+                ], temperature: 0.2, max_tokens: 1024, response_format: { type: 'json_object' } })
+              });
+              const orData = await orRes.json();
+              const gradeText = orData.choices?.[0]?.message?.content || '{}';
+              let gradeResult;
+              try { gradeResult = JSON.parse(gradeText); } catch(e) {
+                const m = gradeText.match(/\{[\s\S]*\}/); if (m) gradeResult = JSON.parse(m[0]); else gradeResult = {};
+              }
+              pts = Math.min(gradeResult.points || 0, q.points || 0);
+              feedback = gradeResult.feedback || '';
+            } catch (aiErr) {
+              console.warn('AI grading error:', aiErr);
+              feedback = 'AI grading failed — manual review needed.';
+            }
+          }
+        }
+
+        totalScore += pts;
+        allFeedback.push('Q' + (responses.indexOf(r) + 1) + ' (' + qType + '): ' + (feedback || 'No feedback'));
+
+        document.getElementById('resGradingText').textContent = 'Grading question ' + (responses.indexOf(r) + 1) + '/' + responses.length + '...';
+      }
+
+      // Save single session-level grading record (v2-gradings is per-session)
+      await sb.from('v2-gradings').delete().eq('session_id', currentResultSession);
+      const { error: gErr } = await sb.from('v2-gradings').insert({
+        session_id: currentResultSession,
+        total_score: totalScore,
+        performance_notes: allFeedback.join('\n'),
+        status: 'completed'
+      });
+      if (gErr) console.warn('Gradings insert error:', gErr.message);
+
+      // Update session with total score and graded status
+      await sb.from('v2-sessions').update({
+        status: 'graded',
+        total_score: totalScore
+      }).eq('id', currentResultSession);
+
+      document.getElementById('resGradingStatus').style.display = 'none';
+      showToast('AI grading complete — ' + totalScore + ' points', 'success');
+
+      // Refresh the results modal
+      await openResultsModal(currentResultSession);
+      await loadSubmissions();
+
+    } catch (err) {
+      showToast('Grading failed: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Grade with AI';
+      document.getElementById('resGradingStatus').style.display = 'none';
+    }
+  };
+
+  // ============ SEND RESULTS EMAIL ============
+  window.sendResultsEmail = async function() {
+    if (!currentResultData) return;
+    const btn = document.getElementById('resSendBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+      await initEmailSvc();
+      const { user, assess, questionResults, totalScore } = currentResultData;
+      const name = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
+      const email = user.email;
+      if (!email) { showToast('No email address for this participant', 'error'); return; }
+
+      const totalPoints = assess.total_points || 0;
+      const passingScore = assess.passing_score || 70;
+      const passed = totalPoints > 0 && (totalScore / totalPoints * 100) >= passingScore;
+
+      await emailSvc.sendResults(email, name, assess.title || 'Assessment', totalScore, totalPoints, passingScore, passed, questionResults || []);
+
+      await sb.from('v2-activity-log').insert({
+        org_id: orgId, action: 'results_sent',
+        message: '<strong>Results sent</strong> to ' + name + ' for ' + (assess.title || 'Assessment')
+      });
+
+      showToast('Results email sent to ' + email, 'success');
+    } catch (err) {
+      showToast('Failed to send email: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Send Results to Participant';
+    }
+  };
+
+  // ============ INITIAL LOAD ============
+  await Promise.all([loadDepartments(), loadStats(), loadEmployees(), loadAssessments(), loadSubmissions(), loadActivity()]);
+  setupRealtime();
+  checkOverdueAssignments();
+})();
+
+function downloadSampleCSV(e) {
+  e.preventDefault();
+  const csv = 'first_name,last_name,email,employee_id,department,job_title,join_date\nJohn,Doe,john@co.com,EMP001,Engineering,Software Engineer,2025-01-15\nJane,Smith,jane@co.com,EMP002,Marketing,Marketing Lead,2024-11-01';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sample_employees.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+</body>
+</html>

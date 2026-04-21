@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Admin — Company Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b;
+    --ink-soft: #2a3a52;
+    --ink-mute: #5a6a82;
+    --ink-faint: #95a0b3;
+    --paper: #fbfaf7;
+    --paper-warm: #f5f2ea;
+    --rule: #e6e1d3;
+    --rule-soft: #efece1;
+    --edstellar: #1d4ed8;
+    --edstellar-deep: #0a2472;
+    --edstellar-mist: #e8eeff;
+    --accent: #c8410b;
+    --accent-soft: #fdeee0;
+    --ok: #1f6f43;
+    --ok-soft: #e3f1e7;
+    --warn: #8a5a00;
+    --warn-soft: #fdf3d8;
+    --bad: #a8290c;
+    --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(14, 26, 43, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #000;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; flex-shrink: 0; }
+  .brand-logo-text { color: var(--ink); font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .top-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 6px 14px; font-size: 11px; font-family: inherit; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500; margin-left: 6px; }
+
+  /* ============ BREADCRUMB ============ */
+  .crumb-strip { background: var(--paper-warm); border-bottom: 1px solid var(--rule); padding: 10px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--ink-mute); }
+  .crumbs { display: flex; align-items: center; gap: 10px; }
+  .crumbs a { color: var(--ink-mute); text-decoration: none; }
+  .crumbs a:hover { color: var(--ink); }
+  .crumbs .sep { color: var(--ink-faint); }
+  .crumbs .current { color: var(--ink); font-weight: 500; }
+  .crumb-meta { color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; font-size: 10.5px; }
+
+  /* ============ MAIN ============ */
+  .main { max-width: 960px; margin: 0 auto; padding: 28px 28px 60px; }
+
+  /* ============ BUTTONS ============ */
+  .btn { padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+
+  /* ============ FORM ============ */
+  .form-group { margin-bottom: 20px; }
+  .form-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
+  .form-hint { font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.4; }
+  .form-input { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--ink-faint); background: var(--paper); }
+  .form-input::placeholder { color: var(--ink-faint); }
+  .form-textarea { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; resize: vertical; min-height: 80px; }
+  .form-select { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; appearance: none; }
+
+  /* ============ SECTIONS ============ */
+  .sect-head { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .sect-head:first-of-type { margin-top: 0; }
+  .sect-head h2 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .sect-head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-right: 8px; font-weight: 600; }
+  .sect-head .meta { font-size: 11px; color: var(--ink-mute); }
+
+  /* ============ PROFILE HEADER ============ */
+  .profile-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 8px;
+    align-items: center;
+  }
+
+  .company-logo-area {
+    width: 120px;
+    height: 120px;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .company-logo-area img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  .logo-upload-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 26, 43, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    cursor: pointer;
+  }
+  .company-logo-area:hover .logo-upload-overlay { opacity: 1; }
+  .logo-upload-overlay span {
+    color: var(--paper);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+
+  .company-info h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .company-tagline {
+    font-size: 13px;
+    color: var(--ink-mute);
+    margin-top: 4px;
+  }
+  .company-ids {
+    display: flex;
+    gap: 18px;
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+  }
+  .company-ids span strong {
+    color: var(--ink-mute);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 6px;
+    font-size: 9.5px;
+  }
+
+  /* ============ SETTINGS CARD ============ */
+  .settings-card {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    padding: 24px;
+    margin-bottom: 8px;
+  }
+  .settings-card-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  /* ============ PREVIEW STRIP ============ */
+  .preview-strip {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    margin-bottom: 8px;
+  }
+  .preview-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-warm);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-mute);
+    font-weight: 600;
+  }
+  .preview-body { padding: 18px; }
+
+  /* Topbar preview */
+  .topbar-preview {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    border-radius: 2px;
+  }
+  .tp-logo-wrap { background: var(--paper); padding: 4px 10px; border-radius: 2px; display: flex; align-items: center; }
+  .tp-logo-wrap img { height: 18px; width: auto; }
+  .tp-logo-wrap span { color: var(--ink); font-size: 12px; font-weight: 700; letter-spacing: -0.02em; }
+  .tp-divider { width: 1px; height: 16px; background: rgba(255,255,255,0.18); }
+  .tp-sub { font-size: 9px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .tp-meta { font-size: 9px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.1em; margin-left: auto; }
+  .tp-meta-val { color: var(--paper); font-weight: 500; font-size: 11px; text-transform: none; letter-spacing: 0; }
+
+  /* Certificate preview */
+  .cert-preview {
+    border: 2px solid var(--ink);
+    padding: 28px;
+    text-align: center;
+    position: relative;
+  }
+  .cert-preview-corners { position: absolute; inset: 4px; border: 1px solid var(--rule); pointer-events: none; }
+  .cert-preview-logo { background: var(--ink); padding: 6px 16px; display: inline-flex; border-radius: 2px; margin-bottom: 12px; }
+  .cert-preview-logo img { height: 16px; }
+  .cert-preview-logo span { color: var(--paper); font-size: 13px; font-weight: 700; letter-spacing: -0.02em; }
+  .cert-preview-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .cert-preview-name { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; color: var(--accent); margin-bottom: 4px; }
+  .cert-preview-org { font-size: 11px; color: var(--ink-mute); }
+  .cert-preview-prog { font-size: 10px; color: var(--ink-faint); margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ DATA MAP TABLE ============ */
+  .map-table { width: 100%; border-collapse: collapse; font-size: 12.5px; border: 1px solid var(--rule); }
+  .map-table thead th { background: var(--paper-warm); text-align: left; padding: 11px 14px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); font-weight: 600; border-bottom: 1px solid var(--rule); }
+  .map-table tbody td { padding: 11px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  .map-table tbody tr:last-child td { border-bottom: none; }
+  .map-table tbody tr:hover { background: #fdfcf9; }
+  .map-field { font-weight: 500; color: var(--ink); }
+  .map-value { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); }
+  .map-pages { font-size: 11px; color: var(--ink-mute); }
+  .page-tag {
+    display: inline-block;
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border: 1px solid var(--rule);
+    background: var(--paper-warm);
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin: 1px 2px;
+    white-space: nowrap;
+  }
+
+  /* ============ ACTION BAR ============ */
+  .action-bar { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .audit-note { font-size: 11px; color: var(--ink-faint); font-family: 'JetBrains Mono', monospace; }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;"></div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Company Profile</span>
+  </div>
+  <div class="topbar-actions">
+    <a href="admin_dashboard.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Dashboard
+    </a>
+    <div class="user-avatar">AD</div>
+  </div>
+</div>
+
+<!-- ============ BREADCRUMB ============ -->
+<div class="crumb-strip">
+  <div class="crumbs">
+    <a href="admin_dashboard.html">Dashboard</a>
+    <span class="sep">/</span>
+    <span class="current">Company Profile</span>
+  </div>
+  <div class="crumb-meta">Last saved 08 Apr 2026 · 10:42 GST</div>
+</div>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+
+  <!-- ============ COMPANY HEADER ============ -->
+  <div class="profile-header">
+    <div class="company-logo-area">
+      <img src="Edstellar_Primary_Logo-1.png" alt="Emaar Properties">
+      <div class="logo-upload-overlay">
+        <span>Change logo</span>
+      </div>
+    </div>
+    <div class="company-info">
+      <h1 class="serif" id="headerOrgName">Loading...</h1>
+      <div class="company-tagline" id="headerTagline"></div>
+      <div class="company-ids">
+        <span><strong>Org ID </strong><span id="headerOrgId">--</span></span>
+        <span><strong>Created </strong><span id="headerCreated">--</span></span>
+        <span><strong>Employees </strong><span id="headerEmpCount">--</span></span>
+        <span><strong>Programmes </strong><span id="headerProgCount">--</span></span>
+      </div>
+    </div>
+    <div>
+      <button class="btn btn-sm" onclick="document.getElementById('orgName').focus(); document.getElementById('orgName').scrollIntoView({behavior:'smooth', block:'center'});">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ 01 · ORGANISATION DETAILS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">01</span>Organisation details</h2>
+    <span class="meta">Core identity — appears on all admin pages, certificates, and assessments</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Company name</label>
+        <input class="form-input" type="text" id="orgName" value="">
+        <div class="form-hint">Shown in topbar, employee profiles, certificates, and participant assessments</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Short name / display name</label>
+        <input class="form-input" type="text" id="orgShortName" value="">
+        <div class="form-hint">Used in compact views: "AI Foundations · Emaar"</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Industry</label>
+        <input class="form-input" type="text" id="orgIndustry" value="">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Headquarters location</label>
+        <input class="form-input" type="text" id="orgHQ" value="">
+        <div class="form-hint">Used as default IP location context in session integrity</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Primary contact email</label>
+        <input class="form-input" type="email" id="orgContactEmail" value="">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Email domain (for employee accounts)</label>
+        <input class="form-input" type="text" id="orgDomain" value="">
+        <div class="form-hint">Employee emails must end with @emaar.ae</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 02 · BRANDING ============ -->
+  <div class="sect-head">
+    <h2><span class="num">02</span>Branding &amp; logo</h2>
+    <span class="meta">Logo and colour — used in topbar, certificates, and assessment headers</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:24px;align-items:start;">
+      <div>
+        <div class="form-label">Company logo</div>
+        <div class="company-logo-area" style="width:180px;height:100px;">
+          <img src="Edstellar_Primary_Logo-1.png" alt="Emaar Properties logo">
+          <div class="logo-upload-overlay"><span>Upload new</span></div>
+        </div>
+        <div class="form-hint" style="margin-top:8px;">PNG or SVG · Max 2 MB · Min 200 x 80 px</div>
+      </div>
+      <div>
+        <div class="form-group">
+          <label class="form-label">Logo background</label>
+          <div style="display:flex;gap:8px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);cursor:pointer;">
+              <input type="radio" name="logobg" checked style="accent-color:var(--ink);"> White background
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);cursor:pointer;">
+              <input type="radio" name="logobg" style="accent-color:var(--ink);"> Dark background
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);cursor:pointer;">
+              <input type="radio" name="logobg" style="accent-color:var(--ink);"> Transparent
+            </label>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Primary brand colour</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div id="colorPreview" style="width:32px;height:32px;background:#c8410b;border:1px solid var(--rule);flex-shrink:0;"></div>
+              <input class="form-input" type="text" id="orgPrimaryColor" value="#c8410b" style="font-family:'JetBrains Mono',monospace;font-size:12px;" oninput="document.getElementById('colorPreview').style.background=this.value">
+            </div>
+            <div class="form-hint">Used for score highlights, accent borders, and certificate corners</div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Secondary brand colour</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div style="width:32px;height:32px;background:#0e1a2b;border:1px solid var(--rule);flex-shrink:0;"></div>
+              <input class="form-input" type="text" value="#0e1a2b" style="font-family:'JetBrains Mono',monospace;font-size:12px;">
+            </div>
+            <div class="form-hint">Used for topbar, buttons, and avatar backgrounds</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 03 · PROGRAMME NAMES ============ -->
+  <div class="sect-head">
+    <h2><span class="num">03</span>Programmes</h2>
+    <span class="meta">Programme names appear in topbar, breadcrumbs, certificates, and assessment headers</span>
+  </div>
+
+  <div class="settings-card">
+    <div class="settings-card-title">Active programmes</div>
+    <table class="map-table">
+      <thead>
+        <tr>
+          <th>Programme name</th>
+          <th>Description</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="programmesTableBody">
+        <tr><td colspan="3" style="text-align:center;padding:20px;color:var(--ink-faint);font-size:12px;">Loading programmes...</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+      <input class="form-input" type="text" id="newProgName" placeholder="Programme name..." style="max-width:240px;">
+      <input class="form-input" type="text" id="newProgDesc" placeholder="Description (optional)" style="max-width:300px;">
+      <button class="btn btn-sm" id="addProgBtn">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Programme
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ 04 · DEPARTMENTS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">04</span>Departments</h2>
+    <span class="meta">Used in employee table, profiles, CSV import, and assessment assignment filters</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:flex;flex-wrap:wrap;gap:6px;" id="dept-list">
+      <!-- Rendered by JS below -->
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+      <input class="form-input" type="text" id="newDeptInput" placeholder="Add a department..." style="max-width:240px;">
+      <button class="btn btn-sm" id="addDeptBtn">Add</button>
+    </div>
+  </div>
+
+  <!-- ============ 05 · CERTIFICATE SETTINGS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">05</span>Certificate settings</h2>
+    <span class="meta">Controls what appears on the certificate page</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Issuing organisation name</label>
+        <input class="form-input" type="text" id="certOrgName" value="">
+        <div class="form-hint">Printed below the candidate name on certificates</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Certificate ID prefix</label>
+        <input class="form-input mono" type="text" id="certPrefix" value="" style="font-size:12px;">
+        <div class="form-hint">e.g. CERT-2026-AK-4421</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Signatory name</label>
+        <input class="form-input" type="text" id="certSignatory" value="">
+        <div class="form-hint">Displayed as the certificate authority</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Signatory title</label>
+        <input class="form-input" type="text" id="certSignatoryTitle" value="">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Certificate footer text</label>
+      <input class="form-input" type="text" id="certFooter" value="">
+    </div>
+  </div>
+
+  <!-- ============ 06 · ASSESSMENT DEFAULTS ============ -->
+  <div class="sect-head">
+    <h2><span class="num">06</span>Assessment defaults</h2>
+    <span class="meta">Default values when creating new assessments — can be overridden per assessment</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Default duration (minutes)</label>
+        <input class="form-input" type="number" value="60">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Default passing score (%)</label>
+        <input class="form-input" type="number" id="orgPassingThreshold" value="70">
+        <div class="form-hint">Also used as the competency threshold line (70%)</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Max attempts</label>
+        <input class="form-input" type="number" value="1">
+        <div class="form-hint">Shown as "Final · 01 of 01" in assessment header</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Auto-save interval (seconds)</label>
+        <input class="form-input" type="number" value="30">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Proctoring</label>
+        <select class="form-select">
+          <option selected>Enabled — tab focus + network monitoring</option>
+          <option>Disabled</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Negative marking (MCQ)</label>
+        <select class="form-select">
+          <option selected>No negative marking</option>
+          <option>-25% per wrong answer</option>
+          <option>-50% per wrong answer</option>
+        </select>
+        <div class="form-hint">Shown in question header on participant page</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 07 · LIVE PREVIEW ============ -->
+  <div class="sect-head">
+    <h2><span class="num">07</span>Live preview</h2>
+    <span class="meta">How company data appears across pages</span>
+  </div>
+
+  <!-- Topbar preview -->
+  <div class="preview-strip">
+    <div class="preview-header">Admin topbar · employee profile view</div>
+    <div class="preview-body">
+      <div class="topbar-preview">
+        <div class="tp-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="" style="height:16px;"></div>
+        <div class="tp-divider"></div>
+        <span class="tp-sub">Admin Console</span>
+        <div class="tp-meta">
+          <span>Organisation</span><br>
+          <span class="tp-meta-val">Emaar Properties</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assessment topbar preview -->
+  <div class="preview-strip">
+    <div class="preview-header">Assessment topbar · participant live view</div>
+    <div class="preview-body">
+      <div class="topbar-preview">
+        <div class="tp-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="" style="height:16px;"></div>
+        <div class="tp-divider"></div>
+        <span class="tp-sub">Assessment Console</span>
+        <div style="margin-left:auto;display:flex;gap:20px;">
+          <div class="tp-meta">
+            <span>Programme</span><br>
+            <span class="tp-meta-val">AI Foundations · Emaar</span>
+          </div>
+          <div class="tp-meta">
+            <span>Attempt</span><br>
+            <span class="tp-meta-val">Final · 01 of 01</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Certificate preview -->
+  <div class="preview-strip">
+    <div class="preview-header">Certificate preview</div>
+    <div class="preview-body" style="display:flex;justify-content:center;">
+      <div class="cert-preview" style="width:400px;">
+        <div class="cert-preview-corners"></div>
+        <div class="cert-preview-logo"><span style="color:var(--paper);font-size:12px;font-weight:700;">edstellar</span></div>
+        <div class="cert-preview-title serif">Certificate of Completion</div>
+        <div class="cert-preview-name serif">Candidate Name</div>
+        <div class="cert-preview-org">Role · Department · Emaar Properties</div>
+        <div class="cert-preview-prog">AI Foundations · Emaar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 08 · DATA MAP ============ -->
+  <div class="sect-head">
+    <h2><span class="num">08</span>Data flow map</h2>
+    <span class="meta">Which field appears on which page</span>
+  </div>
+
+  <table class="map-table">
+    <thead>
+      <tr>
+        <th>Field</th>
+        <th>Current value</th>
+        <th>Appears on</th>
+      </tr>
+    </thead>
+    <tbody id="dataMapBody">
+      <tr><td colspan="3" style="text-align:center;padding:20px;color:var(--ink-faint);font-size:12px;">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ============ ACTION BAR ============ -->
+  <div class="action-bar">
+    <span class="audit-note">Last saved 08 Apr 2026 · 10:42 GST</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost">Cancel</button>
+      <button class="btn btn-primary">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        Save Company Profile
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+(async function() {
+  await requireAdmin();
+  const sb = getClient();
+  const orgId = await getOrgId();
+
+  // ============ LOAD ORG DATA ============
+  async function loadOrg() {
+    const { data: org, error } = await sb.from('v2-organizations').select('*').eq('id', orgId).single();
+    if (error || !org) { showToast('Could not load company profile', 'error'); return; }
+
+    document.getElementById('orgName').value = org.name || '';
+    document.getElementById('orgShortName').value = org.short_name || '';
+    document.getElementById('orgIndustry').value = org.industry || '';
+    document.getElementById('orgHQ').value = org.hq_location || '';
+    document.getElementById('orgContactEmail').value = org.primary_email || org.contact_email || '';
+    document.getElementById('orgDomain').value = org.email_domain || '';
+    document.getElementById('orgPrimaryColor').value = org.primary_color || '#c8410b';
+    document.getElementById('colorPreview').style.background = org.primary_color || '#c8410b';
+    document.getElementById('orgPassingThreshold').value = org.passing_threshold || 70;
+    document.getElementById('certOrgName').value = org.name || '';
+    document.getElementById('certPrefix').value = org.certificate_prefix || '';
+    document.getElementById('certSignatory').value = org.signatory_name || '';
+    document.getElementById('certSignatoryTitle').value = org.signatory_title || '';
+    document.getElementById('certFooter').value = org.certificate_footer || '';
+
+    // Update header section
+    document.getElementById('headerOrgName').textContent = org.name || '';
+    document.getElementById('headerTagline').textContent = (org.industry || '') + ' \u00b7 ' + (org.hq_location || '');
+    document.getElementById('headerOrgId').textContent = org.id ? org.id.substring(0, 8).toUpperCase() : '--';
+    if (org.created_at) {
+      document.getElementById('headerCreated').textContent = new Date(org.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    // Get employee and programme counts
+    const [empRes, progRes] = await Promise.all([
+      sb.from('v2-users').select('id', { count: 'exact', head: true }).eq('org_id', orgId).eq('role', 'employee'),
+      sb.from('v2-programmes').select('id', { count: 'exact', head: true }).eq('org_id', orgId)
+    ]);
+    document.getElementById('headerEmpCount').textContent = empRes.count || 0;
+    document.getElementById('headerProgCount').textContent = progRes.count || 0;
+
+    // Update logo if present
+    if (org.logo_url) {
+      document.querySelectorAll('.company-logo-area img').forEach(img => { img.src = org.logo_url; });
+    }
+  }
+
+  // ============ LOAD DATA MAP ============
+  async function loadDataMap() {
+    const { data: org } = await sb.from('v2-organizations').select('*').eq('id', orgId).single();
+    const { count: deptCount } = await sb.from('v2-departments').select('id', { count: 'exact', head: true }).eq('org_id', orgId);
+    if (!org) return;
+
+    const rows = [
+      { field: 'Company name', value: org.name || '--', pages: ['Admin Profile', 'Employee Profile', 'Certificate'] },
+      { field: 'Short name', value: org.short_name || '--', pages: ['Assessment Topbar', 'Certificate Footer', 'Breadcrumbs'] },
+      { field: 'Company logo', value: org.logo_url || 'Edstellar_Primary_Logo-1.png', pages: ['All Topbars', 'Certificate', 'Login'] },
+      { field: 'Primary colour', value: org.primary_color || '--', pages: ['Score Highlights', 'Avatar Shadows', 'Cert Corners', 'Section Tabs'] },
+      { field: 'HQ location', value: org.hq_location || '--', pages: ['Session Integrity', 'Employee Profile'] },
+      { field: 'Passing threshold', value: (org.passing_threshold || 70) + '%', pages: ['Competency Bars', 'Assessment Editor', 'Results Page'] },
+      { field: 'Email domain', value: org.email_domain || '--', pages: ['Add Employee Modal', 'CSV Import Validation'] },
+      { field: 'Departments', value: (deptCount || 0) + ' departments', pages: ['Add Employee Modal', 'Employee Table', 'Assign Modal'] },
+      { field: 'Certificate prefix', value: org.certificate_prefix || '--', pages: ['Certificate Page'] },
+      { field: 'Signatory', value: org.signatory_name || '--', pages: ['Certificate Page'] },
+      { field: 'Primary email', value: org.primary_email || '--', pages: ['Company Profile'] },
+    ];
+
+    document.getElementById('dataMapBody').innerHTML = rows.map(r =>
+      '<tr>' +
+        '<td class="map-field">' + r.field + '</td>' +
+        '<td class="map-value">' + r.value + '</td>' +
+        '<td class="map-pages">' + r.pages.map(p => '<span class="page-tag">' + p + '</span>').join('') + '</td>' +
+      '</tr>'
+    ).join('');
+  }
+
+  // ============ LOAD PROGRAMMES ============
+  async function loadProgrammes() {
+    const tbody = document.getElementById('programmesTableBody');
+    const { data, error } = await sb.from('v2-programmes').select('*').eq('org_id', orgId).order('name');
+    if (error) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--bad);font-size:12px;">Error: ' + error.message + '</td></tr>';
+      return;
+    }
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--ink-faint);font-size:12px;">No programmes yet. Add one below.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.map(p => {
+      return '<tr data-prog-id="' + p.id + '">' +
+        '<td class="map-field"><input class="form-input prog-name" type="text" value="' + (p.name || '').replace(/"/g, '&quot;') + '" style="margin-bottom:0;border:none;background:transparent;padding:0;font-weight:500;" onchange="updateProgramme(this)"></td>' +
+        '<td class="map-value"><input class="form-input prog-desc" type="text" value="' + (p.description || '').replace(/"/g, '&quot;') + '" style="margin-bottom:0;border:none;background:transparent;padding:0;font-size:11px;color:var(--ink-soft);" onchange="updateProgramme(this)"></td>' +
+        '<td style="text-align:right"><button class="btn btn-ghost btn-sm" style="color:var(--bad);border-color:var(--bad-soft);font-size:10px;padding:4px 10px;" onclick="deleteProgramme(\'' + p.id + '\')">Delete</button></td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // Add programme
+  document.getElementById('addProgBtn').addEventListener('click', async () => {
+    const name = document.getElementById('newProgName').value.trim();
+    const desc = document.getElementById('newProgDesc').value.trim();
+    if (!name) { showToast('Programme name is required', 'warn'); return; }
+
+    const { error } = await sb.from('v2-programmes').insert({ org_id: orgId, name, description: desc || null });
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+
+    document.getElementById('newProgName').value = '';
+    document.getElementById('newProgDesc').value = '';
+    showToast('Programme added', 'success');
+    await loadProgrammes();
+    await loadDataMap();
+  });
+
+  // Update programme inline
+  window.updateProgramme = async function(input) {
+    const row = input.closest('[data-prog-id]');
+    const progId = row.dataset.progId;
+    const name = row.querySelector('.prog-name').value.trim();
+    const desc = row.querySelector('.prog-desc').value.trim();
+
+    const { error } = await sb.from('v2-programmes').update({ name, description: desc || null }).eq('id', progId);
+    if (error) { showToast('Update failed: ' + error.message, 'error'); return; }
+    showToast('Programme updated', 'success');
+  };
+
+  // Delete programme
+  window.deleteProgramme = async function(progId) {
+    if (!confirm('Delete this programme? This cannot be undone.')) return;
+    const { error } = await sb.from('v2-programmes').delete().eq('id', progId);
+    if (error) { showToast('Delete failed: ' + error.message, 'error'); return; }
+    showToast('Programme deleted', 'success');
+    await loadProgrammes();
+    await loadDataMap();
+  };
+
+  // ============ LOAD DEPARTMENTS ============
+  async function loadDepartments() {
+    const { data } = await sb.from('v2-departments').select('*').eq('org_id', orgId).order('name');
+    const deptList = document.getElementById('dept-list');
+    deptList.innerHTML = '';
+    if (!data || data.length === 0) {
+      deptList.innerHTML = '<span style="color:var(--ink-faint);font-size:12px;">No departments yet</span>';
+      return;
+    }
+    data.forEach(d => {
+      const tag = document.createElement('span');
+      tag.className = 'page-tag';
+      tag.style.cssText = 'font-size:11px;padding:5px 10px;cursor:pointer;';
+      tag.innerHTML = d.name + ' <span style="margin-left:6px;color:var(--ink-faint);" data-dept-id="' + d.id + '">\u00d7</span>';
+      tag.querySelector('span').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await sb.from('v2-departments').delete().eq('id', d.id);
+        showToast('Department removed', 'success');
+        loadDepartments();
+      });
+      deptList.appendChild(tag);
+    });
+  }
+
+  // ============ ADD DEPARTMENT ============
+  document.getElementById('addDeptBtn').addEventListener('click', async () => {
+    const input = document.getElementById('newDeptInput');
+    const name = input.value.trim();
+    if (!name) return;
+    const { error } = await sb.from('v2-departments').insert({ org_id: orgId, name });
+    if (error) { showToast('Error: ' + error.message, 'error'); return; }
+    input.value = '';
+    showToast('Department added', 'success');
+    loadDepartments();
+  });
+
+  // ============ LOGO UPLOAD ============
+  document.querySelectorAll('.logo-upload-overlay').forEach(overlay => {
+    overlay.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/png,image/svg+xml';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) { showToast('File too large (max 2 MB)', 'error'); return; }
+
+        const fileName = 'org-' + orgId + '-logo.' + file.name.split('.').pop();
+        const { data, error } = await sb.storage.from('logos').upload(fileName, file, { upsert: true });
+        if (error) { showToast('Upload failed: ' + error.message, 'error'); return; }
+
+        const { data: { publicUrl } } = sb.storage.from('logos').getPublicUrl(fileName);
+        await sb.from('v2-organizations').update({ logo_url: publicUrl }).eq('id', orgId);
+        document.querySelectorAll('.company-logo-area img').forEach(img => { img.src = publicUrl; });
+        showToast('Logo updated', 'success');
+      };
+      input.click();
+    });
+  });
+
+  // ============ SAVE COMPANY PROFILE ============
+  document.querySelector('.action-bar .btn-primary').addEventListener('click', async () => {
+    const btn = document.querySelector('.action-bar .btn-primary');
+    btn.disabled = true;
+    const original = btn.innerHTML;
+    btn.textContent = 'Saving...';
+
+    const { error } = await sb.from('v2-organizations').update({
+      name: document.getElementById('orgName').value,
+      short_name: document.getElementById('orgShortName').value,
+      industry: document.getElementById('orgIndustry').value,
+      hq_location: document.getElementById('orgHQ').value,
+      primary_email: document.getElementById('orgContactEmail').value,
+      email_domain: document.getElementById('orgDomain').value,
+      primary_color: document.getElementById('orgPrimaryColor').value,
+      passing_threshold: parseInt(document.getElementById('orgPassingThreshold').value) || 70,
+      certificate_prefix: document.getElementById('certPrefix').value,
+      signatory_name: document.getElementById('certSignatory').value,
+      signatory_title: document.getElementById('certSignatoryTitle').value,
+      certificate_footer: document.getElementById('certFooter').value
+    }).eq('id', orgId);
+
+    btn.disabled = false;
+    btn.innerHTML = original;
+
+    if (error) {
+      showToast('Save failed: ' + error.message, 'error');
+    } else {
+      const now = new Date();
+      document.querySelector('.audit-note').textContent = 'Last saved ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' \u00b7 ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      showToast('Company profile saved', 'success');
+      await loadOrg(); // Refresh header with new data
+      await loadDataMap(); // Refresh data flow map
+    }
+  });
+
+  // ============ INITIAL LOAD ============
+  await Promise.all([loadOrg(), loadProgrammes(), loadDepartments(), loadDataMap()]);
+})();
+</script>
+
+</body>
+</html>

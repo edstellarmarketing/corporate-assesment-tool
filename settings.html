@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Admin — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b;
+    --ink-soft: #2a3a52;
+    --ink-mute: #5a6a82;
+    --ink-faint: #95a0b3;
+    --paper: #fbfaf7;
+    --paper-warm: #f5f2ea;
+    --rule: #e6e1d3;
+    --rule-soft: #efece1;
+    --edstellar: #1d4ed8;
+    --edstellar-deep: #0a2472;
+    --edstellar-mist: #e8eeff;
+    --accent: #c8410b;
+    --accent-soft: #fdeee0;
+    --ok: #1f6f43;
+    --ok-soft: #e3f1e7;
+    --warn: #8a5a00;
+    --warn-soft: #fdf3d8;
+    --bad: #a8290c;
+    --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter Tight', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+  body {
+    background-image: radial-gradient(circle at 1px 1px, rgba(14, 26, 43, 0.04) 1px, transparent 0);
+    background-size: 28px 28px;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 9px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #000;
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; flex-shrink: 0; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .top-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 6px 14px; font-size: 11px; font-family: inherit; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+  .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--paper); display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-size: 14px; font-weight: 500; margin-left: 6px; }
+
+  /* ============ BREADCRUMB ============ */
+  .crumb-strip { background: var(--paper-warm); border-bottom: 1px solid var(--rule); padding: 10px 28px; display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--ink-mute); }
+  .crumbs { display: flex; align-items: center; gap: 10px; }
+  .crumbs a { color: var(--ink-mute); text-decoration: none; }
+  .crumbs a:hover { color: var(--ink); }
+  .crumbs .sep { color: var(--ink-faint); }
+  .crumbs .current { color: var(--ink); font-weight: 500; }
+  .crumb-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); }
+
+  /* ============ MAIN ============ */
+  .main { max-width: 900px; margin: 0 auto; padding: 28px 28px 80px; }
+
+  /* ============ SECTION HEADER ============ */
+  .sect-head { display: flex; align-items: baseline; justify-content: space-between; margin: 36px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .sect-head:first-child { margin-top: 0; }
+  .sect-head h2 { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; color: var(--ink); letter-spacing: -0.01em; }
+  .sect-head .num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); margin-right: 8px; font-weight: 600; }
+  .sect-head .meta { font-size: 11px; color: var(--ink-mute); }
+
+  /* ============ SETTINGS CARD ============ */
+  .settings-card { border: 1px solid var(--rule); background: var(--paper); padding: 24px; margin-bottom: 8px; }
+
+  /* ============ FORM ============ */
+  .form-group { margin-bottom: 18px; }
+  .form-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-mute); font-weight: 600; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--ink-faint); background: var(--paper); }
+  .form-input::placeholder { color: var(--ink-faint); }
+  .form-input.mono-input { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.02em; }
+  .form-hint { font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.5; }
+  .form-select { width: 100%; padding: 10px 14px; font-family: inherit; font-size: 13px; color: var(--ink); border: 1px solid var(--rule); background: var(--paper-warm); outline: none; appearance: none; }
+
+  /* ============ BUTTONS ============ */
+  .btn { padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+  .btn-ok { background: var(--ok); color: var(--paper); border-color: var(--ok); }
+  .btn-ok:hover { background: #165a35; border-color: #165a35; }
+  .btn-danger { border-color: var(--bad); color: var(--bad); }
+  .btn-danger:hover { background: var(--bad); color: var(--paper); }
+
+  /* ============ STATUS INDICATOR ============ */
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; padding: 4px 12px; border: 1px solid; }
+  .status-badge.connected { background: var(--ok-soft); color: var(--ok); border-color: #c5e0ce; }
+  .status-badge.disconnected { background: var(--bad-soft); color: var(--bad); border-color: #e8c0b6; }
+  .status-badge.untested { background: var(--paper-warm); color: var(--ink-faint); border-color: var(--rule); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .status-badge.connected .status-dot { background: var(--ok); }
+  .status-badge.disconnected .status-dot { background: var(--bad); }
+  .status-badge.untested .status-dot { background: var(--ink-faint); }
+
+  /* ============ API KEY INPUT ============ */
+  .key-input-wrap { position: relative; display: flex; gap: 0; }
+  .key-input-wrap .form-input { border-right: none; }
+  .key-toggle { background: var(--paper-warm); border: 1px solid var(--rule); border-left: none; padding: 0 12px; cursor: pointer; color: var(--ink-faint); display: flex; align-items: center; flex-shrink: 0; }
+  .key-toggle:hover { color: var(--ink); background: var(--paper); }
+
+  /* ============ MODEL CARD ============ */
+  .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .model-card { border: 1px solid var(--rule); background: var(--paper); padding: 18px; transition: border-color 0.15s; }
+  .model-card:hover { border-color: var(--ink-faint); }
+  .model-card.active { border-color: var(--ok); border-left: 3px solid var(--ok); }
+  .model-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .model-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .model-provider { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); font-weight: 600; }
+  .model-id { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); margin-bottom: 8px; }
+  .model-meta { display: flex; gap: 14px; font-size: 10.5px; color: var(--ink-faint); }
+  .model-toggle { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .model-toggle input { accent-color: var(--ok); }
+  .model-toggle label { font-size: 11px; color: var(--ink-mute); cursor: pointer; }
+
+  /* ============ TOGGLE SWITCH ============ */
+  .toggle { position: relative; width: 36px; height: 20px; display: inline-block; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--rule); transition: 0.2s; border-radius: 10px; }
+  .toggle-slider:before { content: ""; position: absolute; height: 14px; width: 14px; left: 3px; bottom: 3px; background: var(--paper); transition: 0.2s; border-radius: 50%; }
+  .toggle input:checked + .toggle-slider { background: var(--ok); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+  /* ============ ACTION BAR ============ */
+  .action-bar { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+
+  /* ============ TEST RESULT ============ */
+  .test-result { margin-top: 10px; padding: 10px 14px; font-size: 11.5px; line-height: 1.6; display: none; }
+  .test-result.success { background: var(--ok-soft); border: 1px solid #c5e0ce; color: var(--ok); display: block; }
+  .test-result.error { background: var(--bad-soft); border: 1px solid #e8c0b6; color: var(--bad); display: block; }
+
+  /* ============ USAGE TABLE ============ */
+  .usage-row { display: grid; grid-template-columns: 1fr 100px 100px; gap: 0; padding: 8px 14px; border-bottom: 1px solid var(--rule-soft); align-items: center; font-size: 12px; }
+  .usage-row:last-child { border-bottom: none; }
+  .usage-header { background: var(--paper-warm); border-bottom: 1px solid var(--rule); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); font-weight: 600; }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;"></div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Settings</span>
+  </div>
+  <div class="topbar-actions">
+    <a href="admin_dashboard.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Dashboard
+    </a>
+    <div class="user-avatar">AD</div>
+  </div>
+</div>
+
+<!-- ============ BREADCRUMB ============ -->
+<div class="crumb-strip">
+  <div class="crumbs">
+    <a href="admin_dashboard.html">Dashboard</a>
+    <span class="sep">/</span>
+    <span class="current">Settings</span>
+  </div>
+  <div class="crumb-meta">API keys are encrypted at rest</div>
+</div>
+
+<!-- ============ MAIN ============ -->
+<div class="main">
+
+  <!-- ============ 01 · SUPABASE CONFIGURATION ============ -->
+  <div class="sect-head" style="margin-top:0;">
+    <h2><span class="num">01</span>Supabase configuration</h2>
+    <span id="supabaseStatus" class="status-badge untested"><span class="status-dot"></span>Not connected</span>
+  </div>
+
+  <div class="settings-card">
+    <div class="form-group">
+      <label class="form-label">Project URL</label>
+      <input class="form-input mono-input" type="url" id="supabaseUrl" placeholder="https://your-project.supabase.co" value="https://supabasekong-dfpiopwrqgdf8iods10d4546.187.127.140.202.sslip.io">
+      <div class="form-hint">Found in Supabase Dashboard → Settings → API → Project URL</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Anon / Public key</label>
+      <div class="key-input-wrap">
+        <input class="form-input mono-input" type="password" id="supabaseAnonKey" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoiYW5vbiJ9.[REDACTED]">
+        <button class="key-toggle" onclick="toggleKeyVisibility('supabaseAnonKey', this)" title="Show/hide key">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="form-hint">Used for client-side operations: auth, real-time subscriptions, storage uploads</div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Service Role key (server-side only)</label>
+      <div class="key-input-wrap">
+        <input class="form-input mono-input" type="password" id="supabaseServiceKey" value="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NTU5MDYyMCwiZXhwIjo0OTMxMjY0MjIwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.[REDACTED]">
+        <button class="key-toggle" onclick="toggleKeyVisibility('supabaseServiceKey', this)" title="Show/hide key">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="form-hint">
+        <strong style="color:var(--bad);">Sensitive</strong> — bypasses Row Level Security. Used server-side for admin operations, grading writes, and data aggregation. Never expose in client code.
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-sm" onclick="testSupabase()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Test Connection
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSupabase()">Clear</button>
+    </div>
+
+    <div class="test-result" id="supabaseTestResult"></div>
+  </div>
+
+  <!-- ============ 02 · OPENROUTER API ============ -->
+  <div class="sect-head">
+    <h2><span class="num">02</span>OpenRouter API</h2>
+    <span id="openrouterStatus" class="status-badge untested"><span class="status-dot"></span>Not connected</span>
+  </div>
+
+  <div class="settings-card">
+    <div class="form-group">
+      <label class="form-label">API key</label>
+      <div class="key-input-wrap">
+        <input class="form-input mono-input" type="password" id="openrouterKey" placeholder="sk-or-v1-...">
+        <button class="key-toggle" onclick="toggleKeyVisibility('openrouterKey', this)" title="Show/hide key">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <div class="form-hint">Get your key from <strong>openrouter.ai/keys</strong> — all model requests are routed through OpenRouter</div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Default model for AI grading</label>
+      <select class="form-select" id="defaultModel">
+        <option value="">Select a default model...</option>
+        <optgroup label="DeepSeek">
+          <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3 (0324)</option>
+          <option value="deepseek/deepseek-r1">DeepSeek R1</option>
+        </optgroup>
+        <optgroup label="Anthropic — Claude">
+          <option value="anthropic/claude-sonnet-4" selected>Claude Sonnet 4</option>
+          <option value="anthropic/claude-opus-4">Claude Opus 4</option>
+          <option value="anthropic/claude-haiku-4">Claude Haiku 4</option>
+        </optgroup>
+        <optgroup label="OpenAI — ChatGPT">
+          <option value="openai/gpt-4o">GPT-4o</option>
+          <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+          <option value="openai/o3-mini">o3-mini</option>
+        </optgroup>
+        <optgroup label="Google — Gemini">
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+          <option value="google/gemini-2.0-flash">Gemini 2.0 Flash</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-sm" onclick="testOpenRouter()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Test Connection
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="clearOpenRouter()">Clear</button>
+    </div>
+
+    <div class="test-result" id="openrouterTestResult"></div>
+  </div>
+
+  <!-- ============ 03 · MODEL CONFIGURATION ============ -->
+  <div class="sect-head">
+    <h2><span class="num">03</span>Model configuration</h2>
+    <span class="meta">Enable models and assign them to specific tasks</span>
+  </div>
+
+  <div class="model-grid">
+
+    <!-- DeepSeek V3 -->
+    <div class="model-card" id="card-deepseek-v3">
+      <div class="model-header">
+        <span class="model-name">DeepSeek V3</span>
+        <span class="model-provider">DeepSeek</span>
+      </div>
+      <div class="model-id">deepseek/deepseek-chat-v3-0324</div>
+      <div class="model-meta">
+        <span>Context: 128k</span>
+        <span>Cost: ~$0.27/M tokens</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" checked onchange="toggleModel('deepseek-v3', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- DeepSeek R1 -->
+    <div class="model-card" id="card-deepseek-r1">
+      <div class="model-header">
+        <span class="model-name">DeepSeek R1</span>
+        <span class="model-provider">DeepSeek</span>
+      </div>
+      <div class="model-id">deepseek/deepseek-r1</div>
+      <div class="model-meta">
+        <span>Context: 128k</span>
+        <span>Cost: ~$0.55/M tokens</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" onchange="toggleModel('deepseek-r1', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- Claude Sonnet 4 -->
+    <div class="model-card active" id="card-claude-sonnet">
+      <div class="model-header">
+        <span class="model-name">Claude Sonnet 4</span>
+        <span class="model-provider">Anthropic</span>
+      </div>
+      <div class="model-id">anthropic/claude-sonnet-4</div>
+      <div class="model-meta">
+        <span>Context: 200k</span>
+        <span>Cost: ~$3/M in · $15/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" checked onchange="toggleModel('claude-sonnet', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled — default</label>
+      </div>
+    </div>
+
+    <!-- Claude Opus 4 -->
+    <div class="model-card" id="card-claude-opus">
+      <div class="model-header">
+        <span class="model-name">Claude Opus 4</span>
+        <span class="model-provider">Anthropic</span>
+      </div>
+      <div class="model-id">anthropic/claude-opus-4</div>
+      <div class="model-meta">
+        <span>Context: 200k</span>
+        <span>Cost: ~$15/M in · $75/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" onchange="toggleModel('claude-opus', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- Claude Haiku 4 -->
+    <div class="model-card" id="card-claude-haiku">
+      <div class="model-header">
+        <span class="model-name">Claude Haiku 4</span>
+        <span class="model-provider">Anthropic</span>
+      </div>
+      <div class="model-id">anthropic/claude-haiku-4</div>
+      <div class="model-meta">
+        <span>Context: 200k</span>
+        <span>Cost: ~$0.80/M in · $4/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" checked onchange="toggleModel('claude-haiku', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- GPT-4o -->
+    <div class="model-card" id="card-gpt4o">
+      <div class="model-header">
+        <span class="model-name">GPT-4o</span>
+        <span class="model-provider">OpenAI</span>
+      </div>
+      <div class="model-id">openai/gpt-4o</div>
+      <div class="model-meta">
+        <span>Context: 128k</span>
+        <span>Cost: ~$2.50/M in · $10/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" checked onchange="toggleModel('gpt4o', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- GPT-4o Mini -->
+    <div class="model-card" id="card-gpt4o-mini">
+      <div class="model-header">
+        <span class="model-name">GPT-4o Mini</span>
+        <span class="model-provider">OpenAI</span>
+      </div>
+      <div class="model-id">openai/gpt-4o-mini</div>
+      <div class="model-meta">
+        <span>Context: 128k</span>
+        <span>Cost: ~$0.15/M in · $0.60/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" onchange="toggleModel('gpt4o-mini', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- o3-mini -->
+    <div class="model-card" id="card-o3-mini">
+      <div class="model-header">
+        <span class="model-name">o3-mini</span>
+        <span class="model-provider">OpenAI</span>
+      </div>
+      <div class="model-id">openai/o3-mini</div>
+      <div class="model-meta">
+        <span>Context: 200k</span>
+        <span>Cost: ~$1.10/M in · $4.40/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" onchange="toggleModel('o3-mini', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- Gemini 2.5 Pro -->
+    <div class="model-card" id="card-gemini-pro">
+      <div class="model-header">
+        <span class="model-name">Gemini 2.5 Pro</span>
+        <span class="model-provider">Google</span>
+      </div>
+      <div class="model-id">google/gemini-2.5-pro</div>
+      <div class="model-meta">
+        <span>Context: 1M</span>
+        <span>Cost: ~$1.25/M in · $10/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" checked onchange="toggleModel('gemini-pro', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+    <!-- Gemini 2.5 Flash -->
+    <div class="model-card" id="card-gemini-flash">
+      <div class="model-header">
+        <span class="model-name">Gemini 2.5 Flash</span>
+        <span class="model-provider">Google</span>
+      </div>
+      <div class="model-id">google/gemini-2.5-flash</div>
+      <div class="model-meta">
+        <span>Context: 1M</span>
+        <span>Cost: ~$0.15/M in · $0.60/M out</span>
+      </div>
+      <div class="model-toggle">
+        <label class="toggle"><input type="checkbox" onchange="toggleModel('gemini-flash', this.checked)"><span class="toggle-slider"></span></label>
+        <label>Enabled</label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ 04 · TASK ROUTING ============ -->
+  <div class="sect-head">
+    <h2><span class="num">04</span>Task routing</h2>
+    <span class="meta">Assign models to specific platform tasks</span>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">AI-assisted grading</label>
+        <select class="form-select" id="routeGrading">
+          <option value="anthropic/claude-sonnet-4">Claude Sonnet 4 (recommended)</option>
+          <option value="anthropic/claude-opus-4">Claude Opus 4</option>
+          <option value="openai/gpt-4o">GPT-4o</option>
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3</option>
+          <option value="deepseek/deepseek-r1">DeepSeek R1</option>
+        </select>
+        <div class="form-hint">Evaluates essay/scenario responses and suggests rubric scores</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Code evaluation</label>
+        <select class="form-select" id="routeCode">
+          <option value="anthropic/claude-sonnet-4">Claude Sonnet 4</option>
+          <option value="deepseek/deepseek-chat-v3-0324" selected>DeepSeek V3 (recommended)</option>
+          <option value="openai/gpt-4o">GPT-4o</option>
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="deepseek/deepseek-r1">DeepSeek R1</option>
+        </select>
+        <div class="form-hint">Reviews code submissions, runs test analysis, and provides feedback</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Performance notes generation</label>
+        <select class="form-select" id="routeNotes">
+          <option value="anthropic/claude-sonnet-4" selected>Claude Sonnet 4 (recommended)</option>
+          <option value="anthropic/claude-opus-4">Claude Opus 4</option>
+          <option value="openai/gpt-4o">GPT-4o</option>
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+        </select>
+        <div class="form-hint">Generates narrative performance feedback for employee profiles</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Question generation</label>
+        <select class="form-select" id="routeQuestions">
+          <option value="anthropic/claude-sonnet-4">Claude Sonnet 4</option>
+          <option value="openai/gpt-4o" selected>GPT-4o (recommended)</option>
+          <option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+          <option value="deepseek/deepseek-chat-v3-0324">DeepSeek V3</option>
+        </select>
+        <div class="form-hint">Auto-generates MCQ, scenario, and coding questions from topic briefs</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <label class="form-label">Fallback model</label>
+      <select class="form-select" id="routeFallback">
+        <option value="anthropic/claude-haiku-4" selected>Claude Haiku 4 (fast, low-cost fallback)</option>
+        <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+        <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
+        <option value="google/gemini-2.0-flash">Gemini 2.0 Flash</option>
+      </select>
+      <div class="form-hint">Used when the primary model is unavailable or rate-limited</div>
+    </div>
+  </div>
+
+  <!-- ============ 05 · ADVANCED ============ -->
+  <div class="sect-head">
+    <h2><span class="num">05</span>Advanced</h2>
+  </div>
+
+  <div class="settings-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group">
+        <label class="form-label">Max tokens (grading)</label>
+        <input class="form-input" type="number" id="maxTokensGrading" value="2048" min="256" max="8192">
+        <div class="form-hint">Maximum output tokens for grading responses</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Temperature</label>
+        <input class="form-input" type="number" id="temperature" value="0.3" min="0" max="2" step="0.1">
+        <div class="form-hint">Lower = more deterministic grading</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Request timeout (sec)</label>
+        <input class="form-input" type="number" id="requestTimeout" value="60" min="10" max="300">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Rate limit (requests/min)</label>
+        <input class="form-input" type="number" id="rateLimit" value="20" min="1" max="100">
+        <div class="form-hint">Prevents exceeding OpenRouter rate limits during bulk operations</div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Retry on failure</label>
+        <select class="form-select" id="retryPolicy">
+          <option value="3" selected>3 retries with exponential backoff</option>
+          <option value="1">1 retry</option>
+          <option value="0">No retry</option>
+          <option value="5">5 retries</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ACTION BAR ============ -->
+  <div class="action-bar">
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="resetDefaults()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 105.32-10.25L1 10"/></svg>
+        Reset to Defaults
+      </button>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="exportSettings()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        Export Config
+      </button>
+      <button class="btn btn-ok btn-sm" onclick="saveSettings()">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        Save Settings
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+  const STORAGE_KEY = 'edstellar_settings';
+
+  // ============ LOAD SETTINGS ============
+  function loadSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      if (saved.supabaseUrl) document.getElementById('supabaseUrl').value = saved.supabaseUrl;
+      if (saved.supabaseAnonKey) document.getElementById('supabaseAnonKey').value = saved.supabaseAnonKey;
+      if (saved.supabaseServiceKey) document.getElementById('supabaseServiceKey').value = saved.supabaseServiceKey;
+      if (saved.openrouterKey) document.getElementById('openrouterKey').value = saved.openrouterKey;
+      if (saved.defaultModel) document.getElementById('defaultModel').value = saved.defaultModel;
+      if (saved.routeGrading) document.getElementById('routeGrading').value = saved.routeGrading;
+      if (saved.routeCode) document.getElementById('routeCode').value = saved.routeCode;
+      if (saved.routeNotes) document.getElementById('routeNotes').value = saved.routeNotes;
+      if (saved.routeQuestions) document.getElementById('routeQuestions').value = saved.routeQuestions;
+      if (saved.routeFallback) document.getElementById('routeFallback').value = saved.routeFallback;
+      if (saved.maxTokensGrading) document.getElementById('maxTokensGrading').value = saved.maxTokensGrading;
+      if (saved.temperature) document.getElementById('temperature').value = saved.temperature;
+      if (saved.requestTimeout) document.getElementById('requestTimeout').value = saved.requestTimeout;
+      if (saved.rateLimit) document.getElementById('rateLimit').value = saved.rateLimit;
+      if (saved.retryPolicy) document.getElementById('retryPolicy').value = saved.retryPolicy;
+      if (saved.enabledModels) {
+        document.querySelectorAll('.model-card').forEach(card => {
+          const id = card.id.replace('card-', '');
+          const checkbox = card.querySelector('input[type="checkbox"]');
+          if (checkbox && saved.enabledModels[id] !== undefined) {
+            checkbox.checked = saved.enabledModels[id];
+            card.classList.toggle('active', saved.enabledModels[id] && id === saved.defaultModelCard);
+          }
+        });
+      }
+    } catch (e) { /* no saved settings */ }
+  }
+
+  // ============ SAVE SETTINGS ============
+  async function saveSettings() {
+    const enabledModels = {};
+    document.querySelectorAll('.model-card').forEach(card => {
+      const id = card.id.replace('card-', '');
+      const checkbox = card.querySelector('input[type="checkbox"]');
+      enabledModels[id] = checkbox ? checkbox.checked : false;
+    });
+
+    const settings = {
+      supabaseUrl: document.getElementById('supabaseUrl').value,
+      supabaseAnonKey: document.getElementById('supabaseAnonKey').value,
+      supabaseServiceKey: document.getElementById('supabaseServiceKey').value,
+      openrouterKey: document.getElementById('openrouterKey').value,
+      defaultModel: document.getElementById('defaultModel').value,
+      routeGrading: document.getElementById('routeGrading').value,
+      routeCode: document.getElementById('routeCode').value,
+      routeNotes: document.getElementById('routeNotes').value,
+      routeQuestions: document.getElementById('routeQuestions').value,
+      routeFallback: document.getElementById('routeFallback').value,
+      maxTokensGrading: document.getElementById('maxTokensGrading').value,
+      temperature: document.getElementById('temperature').value,
+      requestTimeout: document.getElementById('requestTimeout').value,
+      rateLimit: document.getElementById('rateLimit').value,
+      retryPolicy: document.getElementById('retryPolicy').value,
+      enabledModels,
+      savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+
+    // Also persist to Supabase if connected
+    try {
+      const sb = getClient();
+      if (sb) {
+        // Try to get org_id from profile, or from existing settings/org table
+        let orgId = await getOrgId();
+        if (!orgId) {
+          const { data: orgRow } = await sb.from('v2-organizations').select('id').limit(1).single();
+          if (orgRow) orgId = orgRow.id;
+        }
+
+        if (orgId) {
+          const rows = Object.entries(settings)
+            .filter(([k]) => !['supabaseUrl', 'supabaseAnonKey', 'supabaseServiceKey', 'savedAt', 'enabledModels'].includes(k))
+            .map(([key, value]) => ({
+              org_id: orgId,
+              key: key,
+              value: JSON.stringify(value)
+            }));
+          if (rows.length) {
+            const { error } = await sb.from('v2-settings').upsert(rows, { onConflict: 'org_id,key' });
+            if (error) console.warn('[settings] Supabase upsert error:', error.message);
+            else console.log('[settings] Saved', rows.length, 'settings to Supabase');
+          }
+          // Save enabled models as JSON
+          await sb.from('v2-settings').upsert({
+            org_id: orgId,
+            key: 'enabled_models',
+            value: JSON.stringify(settings.enabledModels || {})
+          }, { onConflict: 'org_id,key' });
+        } else {
+          console.warn('[settings] No org_id found — run seedAll() first, or create an organization.');
+        }
+      }
+    } catch (e) {
+      console.warn('[settings] Supabase sync failed:', e);
+    }
+
+    showSaveConfirmation();
+  }
+
+  function showSaveConfirmation() {
+    const btn = document.querySelector('.action-bar .btn-ok');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+    btn.style.background = 'var(--ok)';
+    btn.style.borderColor = 'var(--ok)';
+    setTimeout(() => {
+      btn.innerHTML = original;
+      btn.style.background = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }
+
+  // ============ TEST SUPABASE ============
+  async function testSupabase() {
+    const url = document.getElementById('supabaseUrl').value.trim();
+    const key = document.getElementById('supabaseAnonKey').value.trim();
+    const resultEl = document.getElementById('supabaseTestResult');
+    const statusEl = document.getElementById('supabaseStatus');
+
+    if (!url || !key) {
+      resultEl.className = 'test-result error';
+      resultEl.textContent = 'Please enter both Project URL and Anon Key before testing.';
+      return;
+    }
+
+    resultEl.className = 'test-result';
+    resultEl.style.display = 'block';
+    resultEl.style.background = 'var(--paper-warm)';
+    resultEl.style.border = '1px solid var(--rule)';
+    resultEl.style.color = 'var(--ink-mute)';
+    resultEl.textContent = 'Testing connection...';
+
+    try {
+      const res = await fetch(url + '/rest/v1/', {
+        method: 'HEAD',
+        headers: { 'apikey': key, 'Authorization': 'Bearer ' + key }
+      });
+      if (res.ok || res.status === 200 || res.status === 204) {
+        resultEl.className = 'test-result success';
+        resultEl.textContent = 'Connected successfully to Supabase project.';
+        statusEl.className = 'status-badge connected';
+        statusEl.innerHTML = '<span class="status-dot"></span>Connected';
+      } else {
+        throw new Error('HTTP ' + res.status);
+      }
+    } catch (e) {
+      resultEl.className = 'test-result error';
+      resultEl.textContent = 'Connection failed: ' + e.message + '. Check your URL and API key.';
+      statusEl.className = 'status-badge disconnected';
+      statusEl.innerHTML = '<span class="status-dot"></span>Failed';
+    }
+  }
+
+  // ============ TEST OPENROUTER ============
+  async function testOpenRouter() {
+    const key = document.getElementById('openrouterKey').value.trim();
+    const resultEl = document.getElementById('openrouterTestResult');
+    const statusEl = document.getElementById('openrouterStatus');
+
+    if (!key) {
+      resultEl.className = 'test-result error';
+      resultEl.textContent = 'Please enter your OpenRouter API key before testing.';
+      return;
+    }
+
+    resultEl.className = 'test-result';
+    resultEl.style.display = 'block';
+    resultEl.style.background = 'var(--paper-warm)';
+    resultEl.style.border = '1px solid var(--rule)';
+    resultEl.style.color = 'var(--ink-mute)';
+    resultEl.textContent = 'Testing API key...';
+
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: { 'Authorization': 'Bearer ' + key }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const count = data.data ? data.data.length : 0;
+        resultEl.className = 'test-result success';
+        resultEl.textContent = 'API key valid. ' + count + ' models available on your account.';
+        statusEl.className = 'status-badge connected';
+        statusEl.innerHTML = '<span class="status-dot"></span>Connected';
+      } else {
+        throw new Error('HTTP ' + res.status + ' — invalid or expired key');
+      }
+    } catch (e) {
+      resultEl.className = 'test-result error';
+      resultEl.textContent = 'Connection failed: ' + e.message;
+      statusEl.className = 'status-badge disconnected';
+      statusEl.innerHTML = '<span class="status-dot"></span>Failed';
+    }
+  }
+
+  // ============ TOGGLE KEY VISIBILITY ============
+  function toggleKeyVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+    } else {
+      input.type = 'password';
+      btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+  }
+
+  // ============ MODEL TOGGLE ============
+  function toggleModel(modelId, enabled) {
+    const card = document.getElementById('card-' + modelId);
+    if (!card) return;
+    if (!enabled) {
+      card.classList.remove('active');
+    }
+  }
+
+  // ============ CLEAR FIELDS ============
+  function clearSupabase() {
+    document.getElementById('supabaseUrl').value = '';
+    document.getElementById('supabaseAnonKey').value = '';
+    document.getElementById('supabaseServiceKey').value = '';
+    document.getElementById('supabaseTestResult').className = 'test-result';
+    document.getElementById('supabaseStatus').className = 'status-badge untested';
+    document.getElementById('supabaseStatus').innerHTML = '<span class="status-dot"></span>Not connected';
+  }
+
+  function clearOpenRouter() {
+    document.getElementById('openrouterKey').value = '';
+    document.getElementById('openrouterTestResult').className = 'test-result';
+    document.getElementById('openrouterStatus').className = 'status-badge untested';
+    document.getElementById('openrouterStatus').innerHTML = '<span class="status-dot"></span>Not connected';
+  }
+
+  // ============ RESET DEFAULTS ============
+  function resetDefaults() {
+    if (!confirm('Reset all settings to defaults? This will clear your API keys.')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  // ============ EXPORT CONFIG ============
+  function exportSettings() {
+    const settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    // Mask sensitive keys for export
+    const exported = { ...settings };
+    if (exported.supabaseAnonKey) exported.supabaseAnonKey = exported.supabaseAnonKey.slice(0, 12) + '...REDACTED';
+    if (exported.supabaseServiceKey) exported.supabaseServiceKey = '...REDACTED';
+    if (exported.openrouterKey) exported.openrouterKey = exported.openrouterKey.slice(0, 10) + '...REDACTED';
+
+    const blob = new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'edstellar-settings.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ============ LOAD FROM SUPABASE ============
+  async function loadFromSupabase() {
+    try {
+      const sb = getClient();
+      if (!sb) { console.warn('[settings] No Supabase client'); return; }
+
+      // Try to get org_id — first from profile, then from org table, then from settings
+      let orgId = await getOrgId();
+
+      if (!orgId) {
+        const { data: orgRow } = await sb.from('v2-organizations').select('id').limit(1).single();
+        if (orgRow) orgId = orgRow.id;
+      }
+      if (!orgId) {
+        const { data: anyRow } = await sb.from('v2-settings').select('org_id').limit(1).single();
+        if (anyRow) orgId = anyRow.org_id;
+      }
+      if (!orgId) { console.warn('[settings] No org_id found'); return; }
+
+      console.log('[settings] Loading settings for org_id:', orgId);
+      const { data, error: loadErr } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+      if (loadErr) { console.error('[settings] Query error:', loadErr.message); return; }
+      if (!data || data.length === 0) { console.warn('[settings] No settings rows found in v2-settings for org:', orgId); return; }
+
+      const fieldMap = {
+        'default_model': 'defaultModel',
+        'defaultModel': 'defaultModel',
+        'route_grading': 'routeGrading',
+        'routeGrading': 'routeGrading',
+        'route_code': 'routeCode',
+        'routeCode': 'routeCode',
+        'route_notes': 'routeNotes',
+        'routeNotes': 'routeNotes',
+        'route_questions': 'routeQuestions',
+        'routeQuestions': 'routeQuestions',
+        'route_fallback': 'routeFallback',
+        'routeFallback': 'routeFallback',
+        'max_tokens_grading': 'maxTokensGrading',
+        'maxTokensGrading': 'maxTokensGrading',
+        'temperature': 'temperature',
+        'requestTimeout': 'requestTimeout',
+        'rate_limit': 'rateLimit',
+        'rateLimit': 'rateLimit',
+        'retry_policy': 'retryPolicy',
+        'retryPolicy': 'retryPolicy'
+      };
+
+      data.forEach(row => {
+        // value is jsonb — could be a quoted string, number, or object
+        let val = row.value;
+        // If jsonb stored a quoted string like "\"some text\"", unwrap it
+        if (typeof val === 'string') {
+          try { val = JSON.parse(val); } catch (e) {}
+        }
+
+        const elId = fieldMap[row.key];
+        if (elId) {
+          const el = document.getElementById(elId);
+          if (el) el.value = val;
+        }
+        if (row.key === 'openrouterKey' || row.key === 'openrouter_key') {
+          document.getElementById('openrouterKey').value = val;
+        }
+        if (row.key === 'enabled_models') {
+          try {
+            const models = typeof val === 'string' ? JSON.parse(val) : val;
+            document.querySelectorAll('.model-card').forEach(card => {
+              const id = card.id.replace('card-', '');
+              const cb = card.querySelector('input[type="checkbox"]');
+              if (cb && models[id] !== undefined) cb.checked = models[id];
+            });
+          } catch (e) {}
+        }
+      });
+
+      console.log('[settings] Loaded', data.length, 'settings from Supabase');
+
+      // Auto-update connection status
+      const statusEl = document.getElementById('supabaseStatus');
+      statusEl.className = 'status-badge connected';
+      statusEl.innerHTML = '<span class="status-dot"></span>Connected';
+    } catch (e) {
+      console.warn('[settings] Supabase load failed, using localStorage:', e);
+    }
+  }
+
+  // ============ INIT ============
+  loadSettings();
+  (async function() {
+    await requireAdmin();
+    await loadFromSupabase();
+  })();
+</script>
+
+</body>
+</html>

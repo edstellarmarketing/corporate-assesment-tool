@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar Admin — Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b; --ink-soft: #2a3a52; --ink-mute: #5a6a82; --ink-faint: #95a0b3;
+    --paper: #fbfaf7; --paper-warm: #f5f2ea; --rule: #e6e1d3; --rule-soft: #efece1;
+    --edstellar: #1d4ed8; --edstellar-deep: #0a2472; --edstellar-mist: #e8eeff;
+    --accent: #c8410b; --accent-soft: #fdeee0;
+    --ok: #1f6f43; --ok-soft: #e3f1e7;
+    --warn: #8a5a00; --warn-soft: #fdf3d8;
+    --bad: #a8290c; --bad-soft: #fbe5df;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.5; }
+  body { background-image: radial-gradient(circle at 1px 1px, rgba(14,26,43,0.04) 1px, transparent 0); background-size: 28px 28px; min-height: 100vh; }
+  .serif { font-family: 'Fraunces', Georgia, serif; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .topbar { background: var(--ink); color: var(--paper); padding: 9px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #000; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand-logo-wrap { background: var(--paper); padding: 6px 14px; display: flex; align-items: center; border-radius: 2px; }
+  .brand-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); }
+  .brand-sub { font-size: 10.5px; color: #8a96ab; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 500; }
+  .top-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: var(--paper); padding: 6px 14px; font-size: 11px; font-family: inherit; font-weight: 500; cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 6px; text-decoration: none; }
+  .top-btn:hover { background: rgba(255,255,255,0.12); }
+
+  .main { max-width: 1200px; margin: 0 auto; padding: 28px 28px 60px; }
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .page-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 500; }
+
+  /* Filters */
+  .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+  .filter-select { padding: 7px 12px; font-family: inherit; font-size: 12px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); cursor: pointer; min-width: 160px; }
+  .filter-select:focus { outline: none; border-color: var(--edstellar); }
+  .search-input { padding: 7px 12px; font-family: inherit; font-size: 12px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); min-width: 220px; }
+  .search-input:focus { outline: none; border-color: var(--edstellar); }
+  .filter-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); font-weight: 600; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); margin-bottom: 20px; }
+  .tab { padding: 10px 20px; font-size: 12px; font-weight: 500; color: var(--ink-mute); cursor: pointer; border-bottom: 2px solid transparent; text-transform: uppercase; letter-spacing: 0.04em; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--edstellar); border-bottom-color: var(--edstellar); }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; border: 1px solid var(--rule); }
+  .data-table th { padding: 10px 14px; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-mute); font-weight: 600; text-align: left; background: var(--paper-warm); border-bottom: 1px solid var(--rule); }
+  .data-table td { padding: 12px 14px; font-size: 12.5px; color: var(--ink-soft); border-bottom: 1px solid var(--rule-soft); }
+  .data-table tr:hover td { background: var(--paper-warm); }
+  .data-table .mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  .status-tag { display: inline-block; padding: 2px 8px; font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .status-tag.published { background: var(--ok-soft); color: var(--ok); border: 1px solid #c5e0ce; }
+  .status-tag.draft { background: var(--warn-soft); color: var(--warn); border: 1px solid #e8d9a0; }
+  .status-tag.graded { background: var(--edstellar-mist); color: var(--edstellar); border: 1px solid #c5d5f5; }
+  .status-tag.submitted { background: var(--accent-soft); color: var(--accent); border: 1px solid #e8c0a3; }
+  .status-tag.passed { background: var(--ok-soft); color: var(--ok); border: 1px solid #c5e0ce; }
+  .status-tag.failed { background: var(--bad-soft); color: var(--bad); border: 1px solid #e8c0b6; }
+
+  .btn { padding: 6px 12px; font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--rule); display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.04em; text-decoration: none; }
+  .btn-sm { padding: 4px 10px; font-size: 10px; }
+  .btn-ghost { background: var(--paper); color: var(--ink-mute); }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-danger { background: var(--paper); color: var(--bad); border-color: var(--bad-soft); }
+  .btn-danger:hover { background: var(--bad-soft); }
+
+  .empty-state { padding: 40px; text-align: center; color: var(--ink-faint); font-size: 12px; }
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+  .count-badge { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-faint); margin-left: 6px; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(14,26,43,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.visible { display: flex; }
+  .modal { background: var(--paper); border: 1px solid var(--rule); max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h3 { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 500; }
+  .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--ink-mute); }
+  .modal-body { padding: 20px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.7; }
+
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .filters { flex-direction: column; }
+    .filter-select, .search-input { min-width: 100%; }
+    .data-table { font-size: 11px; }
+    .data-table th, .data-table td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap"><img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:20px;"></div>
+    <div class="brand-divider"></div>
+    <span class="brand-sub">Reports</span>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a href="admin_dashboard.html" class="top-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <h1 class="page-title serif">Reports &amp; Assessments</h1>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div>
+      <div class="filter-label">Department</div>
+      <select class="filter-select" id="filterDept">
+        <option value="">All Departments</option>
+      </select>
+    </div>
+    <div>
+      <div class="filter-label">Programme</div>
+      <select class="filter-select" id="filterProg">
+        <option value="">All Programmes</option>
+      </select>
+    </div>
+    <div>
+      <div class="filter-label">Status</div>
+      <select class="filter-select" id="filterStatus">
+        <option value="">All Statuses</option>
+        <option value="published">Published</option>
+        <option value="draft">Draft</option>
+      </select>
+    </div>
+    <div>
+      <div class="filter-label">Search</div>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search assessments...">
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="assessments" onclick="switchTab('assessments')">Assessments <span class="count-badge" id="assessCount">--</span></div>
+    <div class="tab" data-tab="submissions" onclick="switchTab('submissions')">Submissions <span class="count-badge" id="subCount">--</span></div>
+  </div>
+
+  <!-- Assessments Table -->
+  <div id="assessmentsTab">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Assessment</th>
+          <th>Department</th>
+          <th>Programme</th>
+          <th>Status</th>
+          <th>Questions</th>
+          <th>Points</th>
+          <th>Submissions</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="assessTableBody">
+        <tr><td colspan="9" class="empty-state">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Submissions Table -->
+  <div id="submissionsTab" style="display:none;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Participant</th>
+          <th>Assessment</th>
+          <th>Department</th>
+          <th>Score</th>
+          <th>Percentage</th>
+          <th>Result</th>
+          <th>Status</th>
+          <th>Certificate</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="subTableBody">
+        <tr><td colspan="10" class="empty-state">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="reportModalTitle">Assessment Report</h3>
+      <button class="modal-close" onclick="document.getElementById('reportModal').classList.remove('visible')">&times;</button>
+    </div>
+    <div class="modal-body" id="reportModalBody">Loading...</div>
+  </div>
+</div>
+
+<div class="corner-mark">Edstellar Platform &middot; v3.2</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+(async function() {
+  await requireAdmin();
+  const sb = getClient();
+  const orgId = await getOrgId();
+
+  let allAssessments = [];
+  let allSessions = [];
+  let departments = [];
+  let programmes = [];
+
+  // ============ LOAD DATA ============
+  let allCertificates = [];
+
+  async function loadAll() {
+    const [assessRes, sessRes, deptRes, progRes, qCountRes, certRes] = await Promise.all([
+      sb.from('v2-assessments').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
+      sb.from('v2-sessions')
+        .select('*, "v2-users"(id, first_name, last_name, email, department_id, "v2-departments"(name)), "v2-assessments"(id, title, passing_score, total_points, programme_id)')
+        .in('status', ['submitted', 'graded'])
+        .order('submitted_at', { ascending: false }),
+      sb.from('v2-departments').select('*').eq('org_id', orgId).order('name'),
+      sb.from('v2-programmes').select('*').eq('org_id', orgId).order('name'),
+      sb.from('v2-questions').select('assessment_id'),
+      sb.from('v2-certificates').select('session_id, verification_code').eq('org_id', orgId)
+    ]);
+
+    allAssessments = assessRes.data || [];
+    allSessions = sessRes.data || [];
+    departments = deptRes.data || [];
+    programmes = progRes.data || [];
+    allCertificates = certRes.data || [];
+
+    // Count questions per assessment
+    const qCounts = {};
+    (qCountRes.data || []).forEach(q => { qCounts[q.assessment_id] = (qCounts[q.assessment_id] || 0) + 1; });
+    allAssessments.forEach(a => { a._questionCount = qCounts[a.id] || 0; });
+
+    // Count submissions per assessment
+    const subCounts = {};
+    allSessions.forEach(s => { subCounts[s.assessment_id] = (subCounts[s.assessment_id] || 0) + 1; });
+    allAssessments.forEach(a => { a._submissionCount = subCounts[a.id] || 0; });
+
+    populateFilters();
+    renderAssessments();
+    renderSubmissions();
+  }
+
+  function populateFilters() {
+    const deptSelect = document.getElementById('filterDept');
+    departments.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.name;
+      deptSelect.appendChild(opt);
+    });
+
+    const progSelect = document.getElementById('filterProg');
+    programmes.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      progSelect.appendChild(opt);
+    });
+  }
+
+  // ============ FILTERS ============
+  function getFiltered() {
+    const dept = document.getElementById('filterDept').value;
+    const prog = document.getElementById('filterProg').value;
+    const status = document.getElementById('filterStatus').value;
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    let filteredAssess = allAssessments.filter(a => {
+      if (status && a.status !== status) return false;
+      if (dept && a.department_id !== dept) return false;
+      if (prog && a.programme_id !== prog) return false;
+      if (search && !(a.title || '').toLowerCase().includes(search) && !(a.description || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    let filteredSessions = allSessions.filter(s => {
+      const user = s['v2-users'] || {};
+      const assess = s['v2-assessments'] || {};
+      const userDept = user.department_id;
+      if (dept && userDept !== dept) return false;
+      if (prog && assess.programme_id !== prog) return false;
+      if (search) {
+        const name = ((user.first_name || '') + ' ' + (user.last_name || '')).toLowerCase();
+        const title = (assess.title || '').toLowerCase();
+        if (!name.includes(search) && !title.includes(search)) return false;
+      }
+      return true;
+    });
+
+    return { filteredAssess, filteredSessions };
+  }
+
+  // ============ RENDER ASSESSMENTS ============
+  function renderAssessments() {
+    const { filteredAssess } = getFiltered();
+    const tbody = document.getElementById('assessTableBody');
+    document.getElementById('assessCount').textContent = filteredAssess.length;
+
+    if (filteredAssess.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-state">No assessments match the filters</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filteredAssess.map(a => {
+      const statusCls = a.status === 'published' ? 'published' : 'draft';
+      const created = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '--';
+      const prog = programmes.find(p => p.id === a.programme_id);
+      const dept = departments.find(d => d.id === a.department_id);
+      return '<tr>' +
+        '<td><strong style="color:var(--ink);">' + (a.title || 'Untitled') + '</strong>' +
+          (a.description ? '<div style="font-size:11px;color:var(--ink-faint);margin-top:2px;">' + a.description.substring(0, 60) + (a.description.length > 60 ? '...' : '') + '</div>' : '') +
+        '</td>' +
+        '<td>' + (dept ? dept.name : '--') + '</td>' +
+        '<td>' + (prog ? prog.name : '--') + '</td>' +
+        '<td><span class="status-tag ' + statusCls + '">' + (a.status || 'draft') + '</span></td>' +
+        '<td class="mono">' + a._questionCount + '</td>' +
+        '<td class="mono">' + (a.total_points || 0) + '</td>' +
+        '<td class="mono">' + a._submissionCount + '</td>' +
+        '<td style="font-size:11px;color:var(--ink-faint);">' + created + '</td>' +
+        '<td>' +
+          '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
+            '<a href="admin_assessment_editor.html?id=' + a.id + '" class="btn btn-ghost btn-sm">Edit</a>' +
+            (a._submissionCount > 0 ? '<button class="btn btn-ghost btn-sm" onclick="viewReports(\'' + a.id + '\', \'' + (a.title || '').replace(/'/g, "\\'") + '\')">Reports</button>' : '') +
+            '<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'' + a.id + '\', \'' + (a.title || '').replace(/'/g, "\\'") + '\')">Delete</button>' +
+          '</div>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ============ RENDER SUBMISSIONS ============
+  function renderSubmissions() {
+    const { filteredSessions } = getFiltered();
+    const tbody = document.getElementById('subTableBody');
+    document.getElementById('subCount').textContent = filteredSessions.length;
+
+    if (filteredSessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No submissions match the filters</td></tr>';
+      return;
+    }
+
+    // Build certificate lookup by session_id
+    const certMap = {};
+    allCertificates.forEach(c => { certMap[c.session_id] = c; });
+
+    tbody.innerHTML = filteredSessions.map(s => {
+      const user = s['v2-users'] || {};
+      const assess = s['v2-assessments'] || {};
+      const name = ((user.first_name || '') + ' ' + (user.last_name || '')).trim() || user.email || '--';
+      const dept = user['v2-departments']?.name || '--';
+      const score = s.total_score != null ? s.total_score : '--';
+      const total = assess.total_points || 0;
+      const pct = total > 0 && s.total_score != null ? Math.round(s.total_score / total * 100) : '--';
+      const passingScore = assess.passing_score || 70;
+      const passed = pct !== '--' && pct >= passingScore;
+      const isGraded = s.status === 'graded';
+      const submitted = s.submitted_at ? new Date(s.submitted_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+      const cert = certMap[s.id];
+      let certHtml = '--';
+      if (cert) {
+        certHtml = '<a href="certificate.html?code=' + encodeURIComponent(cert.verification_code) + '" class="status-tag passed" style="text-decoration:none;" target="_blank">View</a>';
+      } else if (passed && isGraded) {
+        certHtml = '<span style="font-size:10px;color:var(--ink-faint);">Pending</span>';
+      }
+
+      return '<tr>' +
+        '<td><strong style="color:var(--ink);">' + name + '</strong>' +
+          '<div style="font-size:11px;color:var(--ink-faint);">' + (user.email || '') + '</div></td>' +
+        '<td>' + (assess.title || '--') + '</td>' +
+        '<td>' + dept + '</td>' +
+        '<td class="mono">' + score + '/' + total + '</td>' +
+        '<td class="mono">' + (pct !== '--' ? pct + '%' : '--') + '</td>' +
+        '<td>' + (pct !== '--' ? '<span class="status-tag ' + (passed ? 'passed' : 'failed') + '">' + (passed ? 'Passed' : 'Failed') + '</span>' : '--') + '</td>' +
+        '<td><span class="status-tag ' + (isGraded ? 'graded' : 'submitted') + '">' + (isGraded ? 'Graded' : 'Pending') + '</span></td>' +
+        '<td>' + certHtml + '</td>' +
+        '<td style="font-size:11px;color:var(--ink-faint);">' + submitted + '</td>' +
+        '<td><a href="admin_assessment_report.html?session=' + s.id + '" class="btn btn-primary btn-sm">Review</a></td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ============ TABS ============
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab[data-tab="' + tab + '"]').classList.add('active');
+    document.getElementById('assessmentsTab').style.display = tab === 'assessments' ? '' : 'none';
+    document.getElementById('submissionsTab').style.display = tab === 'submissions' ? '' : 'none';
+  };
+
+  // ============ VIEW REPORTS MODAL ============
+  window.viewReports = async function(assessId, title) {
+    const modal = document.getElementById('reportModal');
+    document.getElementById('reportModalTitle').textContent = 'Reports — ' + title;
+    document.getElementById('reportModalBody').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-faint);">Loading reports...</div>';
+    modal.classList.add('visible');
+
+    const { data: reports } = await sb.from('v2-assessment-reports')
+      .select('*, "v2-users"(first_name, last_name, email)')
+      .eq('assessment_id', assessId)
+      .order('graded_at', { ascending: false });
+
+    if (!reports || reports.length === 0) {
+      document.getElementById('reportModalBody').innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-faint);">No graded reports yet for this assessment.</div>';
+      return;
+    }
+
+    let html = '<table class="data-table" style="font-size:12px;">';
+    html += '<thead><tr><th>Participant</th><th>Score</th><th>%</th><th>Result</th><th>Graded</th><th>Sent</th></tr></thead><tbody>';
+    reports.forEach(r => {
+      const u = r['v2-users'] || {};
+      const name = ((u.first_name || '') + ' ' + (u.last_name || '')).trim() || u.email || '--';
+      const pctVal = r.total_points > 0 ? Math.round(r.total_score / r.total_points * 100) : 0;
+      html += '<tr>' +
+        '<td>' + name + '</td>' +
+        '<td class="mono">' + (r.total_score || 0) + '/' + (r.total_points || 0) + '</td>' +
+        '<td class="mono">' + pctVal + '%</td>' +
+        '<td><span class="status-tag ' + (r.passed ? 'passed' : 'failed') + '">' + (r.passed ? 'Passed' : 'Failed') + '</span></td>' +
+        '<td style="font-size:11px;">' + (r.graded_at ? new Date(r.graded_at).toLocaleDateString() : '--') + '</td>' +
+        '<td>' + (r.results_sent ? '<span style="color:var(--ok);font-size:11px;">Sent</span>' : '<span style="color:var(--ink-faint);font-size:11px;">No</span>') + '</td>' +
+      '</tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('reportModalBody').innerHTML = html;
+  };
+
+  // ============ DELETE ASSESSMENT ============
+  window.confirmDelete = function(id, title) {
+    if (!confirm('Delete "' + title + '"? This will delete all questions, submissions, and gradings. This cannot be undone.')) return;
+    deleteAssessment(id, title);
+  };
+
+  async function deleteAssessment(id, title) {
+    try {
+      // Get question IDs for cascade
+      const { data: qs } = await sb.from('v2-questions').select('id').eq('assessment_id', id);
+      const qIds = (qs || []).map(q => q.id);
+
+      // Get session IDs
+      const { data: sessions } = await sb.from('v2-sessions').select('id').eq('assessment_id', id);
+      const sessIds = (sessions || []).map(s => s.id);
+
+      // Delete child records
+      if (qIds.length) {
+        await sb.from('v2-mcq-options').delete().in('question_id', qIds);
+        await sb.from('v2-rubric-criteria').delete().in('question_id', qIds);
+        await sb.from('v2-test-cases').delete().in('question_id', qIds);
+      }
+      if (sessIds.length) {
+        await sb.from('v2-responses').delete().in('session_id', sessIds);
+        await sb.from('v2-gradings').delete().in('session_id', sessIds);
+        await sb.from('v2-grading-queue').delete().in('session_id', sessIds);
+        await sb.from('v2-integrity-logs').delete().in('session_id', sessIds);
+        await sb.from('v2-auto-saves').delete().in('session_id', sessIds);
+        await sb.from('v2-assessment-reports').delete().in('session_id', sessIds);
+        await sb.from('v2-sessions').delete().in('id', sessIds);
+      }
+      await sb.from('v2-questions').delete().eq('assessment_id', id);
+      await sb.from('v2-assessment-sections').delete().eq('assessment_id', id);
+      await sb.from('v2-assessment-rubric').delete().eq('assessment_id', id);
+      await sb.from('v2-assignments').delete().eq('assessment_id', id);
+      await sb.from('v2-ai-assessment-data').delete().eq('assessment_id', id);
+
+      const { error } = await sb.from('v2-assessments').delete().eq('id', id);
+      if (error) throw error;
+
+      showToast('Assessment "' + title + '" deleted', 'success');
+      await loadAll();
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error');
+    }
+  }
+
+  // ============ EVENT LISTENERS ============
+  document.getElementById('filterDept').addEventListener('change', () => { renderAssessments(); renderSubmissions(); });
+  document.getElementById('filterProg').addEventListener('change', () => { renderAssessments(); renderSubmissions(); });
+  document.getElementById('filterStatus').addEventListener('change', () => { renderAssessments(); renderSubmissions(); });
+  document.getElementById('searchInput').addEventListener('input', () => { renderAssessments(); renderSubmissions(); });
+
+  // Close modal on overlay click
+  document.getElementById('reportModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('visible');
+  });
+
+  // ============ INIT ============
+  await loadAll();
+
+  // Auto-switch to submissions tab if hash is #submissions
+  if (window.location.hash === '#submissions') {
+    switchTab('submissions');
+  }
+})();
+</script>
+</body>
+</html>

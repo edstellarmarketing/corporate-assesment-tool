@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edstellar — Certificate of Completion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e1a2b; --ink-soft: #2a3a52; --ink-mute: #5a6a82; --ink-faint: #95a0b3;
+    --paper: #fbfaf7; --paper-warm: #f5f2ea; --rule: #e6e1d3; --rule-soft: #efece1;
+    --accent: #c8410b; --accent-soft: #fdeee0;
+    --ok: #1f6f43; --ok-soft: #e3f1e7;
+    --gold: #b8860b; --gold-soft: #fdf3d8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; font-feature-settings: 'ss01', 'cv11'; -webkit-font-smoothing: antialiased; line-height: 1.5; }
+  body { background-image: radial-gradient(circle at 1px 1px, rgba(14,26,43,0.04) 1px, transparent 0); background-size: 28px 28px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.01em; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ACTION BAR */
+  .action-bar {
+    display: flex; gap: 8px; margin-bottom: 24px; align-items: center;
+  }
+  .btn { padding: 9px 20px; font-family: inherit; font-size: 12px; font-weight: 500; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.15s; text-decoration: none; }
+  .btn:hover { background: var(--ink); color: var(--paper); }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+  .btn-ghost { border-color: var(--rule); color: var(--ink-mute); }
+  .btn-ghost:hover { background: var(--paper-warm); color: var(--ink); border-color: var(--ink-faint); }
+
+  /* CERTIFICATE */
+  .cert-page {
+    width: 800px;
+    min-height: 560px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Decorative border */
+  .cert-border {
+    position: absolute;
+    inset: 12px;
+    border: 2px solid var(--ink);
+    pointer-events: none;
+  }
+  .cert-border-inner {
+    position: absolute;
+    inset: 16px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+
+  /* Corner accents */
+  .cert-corner { position: absolute; width: 24px; height: 24px; }
+  .cert-corner::before, .cert-corner::after { content: ''; position: absolute; background: var(--accent); }
+  .cert-corner.tl { top: 8px; left: 8px; }
+  .cert-corner.tl::before { top: 0; left: 0; width: 24px; height: 2px; }
+  .cert-corner.tl::after { top: 0; left: 0; width: 2px; height: 24px; }
+  .cert-corner.tr { top: 8px; right: 8px; }
+  .cert-corner.tr::before { top: 0; right: 0; width: 24px; height: 2px; }
+  .cert-corner.tr::after { top: 0; right: 0; width: 2px; height: 24px; }
+  .cert-corner.bl { bottom: 8px; left: 8px; }
+  .cert-corner.bl::before { bottom: 0; left: 0; width: 24px; height: 2px; }
+  .cert-corner.bl::after { bottom: 0; left: 0; width: 2px; height: 24px; }
+  .cert-corner.br { bottom: 8px; right: 8px; }
+  .cert-corner.br::before { bottom: 0; right: 0; width: 24px; height: 2px; }
+  .cert-corner.br::after { bottom: 0; right: 0; width: 2px; height: 24px; }
+
+  .cert-content {
+    position: relative;
+    z-index: 1;
+    padding: 48px 60px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 560px;
+    justify-content: center;
+  }
+
+  /* Logo */
+  .cert-logo {
+    background: var(--ink);
+    padding: 8px 22px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 2px;
+    margin-bottom: 28px;
+  }
+  .cert-logo-text {
+    color: var(--paper);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Title */
+  .cert-title-label {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--ink-mute);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .cert-title {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.015em;
+    margin-bottom: 24px;
+  }
+
+  /* Divider */
+  .cert-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--accent);
+    margin: 0 auto 24px;
+  }
+
+  /* Presented to */
+  .cert-presented {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .cert-recipient {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+
+  .cert-org {
+    font-size: 13px;
+    color: var(--ink-mute);
+    margin-bottom: 24px;
+  }
+
+  /* Description */
+  .cert-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    max-width: 480px;
+    margin-bottom: 28px;
+  }
+
+  /* Score & Assessment */
+  .cert-assessment {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  .cert-score-block {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 24px;
+    border: 1px solid var(--rule);
+    background: var(--ok-soft);
+    margin-bottom: 28px;
+  }
+  .cert-score-label {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+    font-weight: 600;
+  }
+  .cert-score-val {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .cert-score-band {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Footer details */
+  .cert-footer {
+    display: flex;
+    gap: 28px;
+    align-items: flex-end;
+    margin-top: 8px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .cert-footer-item {
+    text-align: center;
+  }
+  .cert-footer-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .cert-footer-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+
+  /* QR placeholder */
+  .cert-qr {
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--rule);
+    background: var(--paper-warm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .cert-qr-inner {
+    width: 48px;
+    height: 48px;
+    background: repeating-conic-gradient(var(--ink) 0% 25%, var(--paper) 0% 50%) 50% / 8px 8px;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: white; padding: 0; }
+    .action-bar { display: none; }
+    .cert-page { border: none; box-shadow: none; }
+    .corner-mark { display: none; }
+  }
+
+  .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<!-- ACTION BAR -->
+<div class="action-bar">
+  <a href="employee_dashboard.html" class="btn btn-ghost">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Back
+  </a>
+  <button class="btn" onclick="window.print()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Print
+  </button>
+  <button class="btn btn-primary" id="downloadPdfBtn" onclick="downloadPDF()">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Download PDF
+  </button>
+  <button class="btn" id="linkedinBtn" onclick="shareLinkedIn()" style="background:#0077b5;color:#fff;border-color:#0077b5;">
+    <svg width="13" height="13" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    Add to LinkedIn
+  </button>
+</div>
+
+<!-- CERTIFICATE -->
+<div class="cert-page">
+  <!-- Decorative elements -->
+  <div class="cert-border"></div>
+  <div class="cert-border-inner"></div>
+  <div class="cert-corner tl"></div>
+  <div class="cert-corner tr"></div>
+  <div class="cert-corner bl"></div>
+  <div class="cert-corner br"></div>
+
+  <div class="cert-content">
+    <!-- Logo -->
+    <div class="cert-logo" style="background:var(--paper);">
+      <img src="Edstellar_Primary_Logo-1.png" alt="Edstellar" style="height:90px;width:auto;">
+    </div>
+
+    <!-- Title -->
+    <div class="cert-title-label">This is to certify that</div>
+    <div class="cert-divider"></div>
+
+    <!-- Recipient -->
+    <div class="cert-recipient serif" id="certRecipient">Loading...</div>
+
+    <!-- Description -->
+    <div class="cert-desc">
+      has successfully completed the assessment and demonstrated<br>proficiency in the following programme:
+    </div>
+
+    <!-- Assessment name -->
+    <div class="cert-assessment serif" id="certAssessment"></div>
+
+    <!-- Score block -->
+    <div class="cert-score-block">
+      <div>
+        <div class="cert-score-label">Score achieved</div>
+        <div class="cert-score-val" id="certScore">--<span style="font-size:14px;">%</span></div>
+      </div>
+      <div style="width:1px;height:40px;background:var(--rule);"></div>
+      <div>
+        <div class="cert-score-label">Performance band</div>
+        <div class="cert-score-band" id="certBand">--</div>
+      </div>
+    </div>
+
+    <!-- Horizontal rule -->
+    <div style="width:100%;height:1px;background:var(--rule);margin:8px 0 24px;"></div>
+
+    <!-- Footer: date, code, QR, signature -->
+    <div class="cert-footer">
+      <div class="cert-footer-item">
+        <div class="cert-footer-label">Date issued</div>
+        <div class="cert-footer-value" id="certDate">--</div>
+      </div>
+      <div class="cert-footer-item">
+        <div class="cert-footer-label">Verification code</div>
+        <div class="cert-footer-value" id="certCode" style="font-size:10px;">--</div>
+      </div>
+      <div class="cert-footer-item">
+        <div class="cert-qr" id="certQr">
+          <div class="cert-qr-inner"></div>
+        </div>
+      </div>
+      <div class="cert-footer-item" style="text-align:right;">
+        <!-- Signature -->
+        <div style="font-family:'Fraunces',Georgia,serif;font-size:22px;font-style:italic;color:var(--ink);margin-bottom:4px;letter-spacing:0.02em;" id="certSignature">Arvind Rongala</div>
+        <div id="certSignatoryName" style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">Arvind Rongala</div>
+        <div id="certSignatoryTitle" style="font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-faint);font-weight:600;">Chief Executive Officer</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="corner-mark">Edstellar Platform · v3.2</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script>
+(async function() {
+  // Certificate page is public — no auth required
+  const sb = getClient();
+  if (!sb) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code') || params.get('id');
+
+  if (!code) {
+    document.getElementById('certRecipient').textContent = 'Certificate not found';
+    document.querySelector('.cert-desc').textContent = 'No verification code provided. Add ?code=XXXX to the URL.';
+    return;
+  }
+
+  // Load certificate with org data
+  let query = sb.from('v2-certificates').select('*, "v2-organizations"(*)');
+  // Try verification_code first, fall back to id
+  if (code.includes('-')) {
+    query = query.eq('verification_code', code);
+  } else {
+    query = query.eq('id', code);
+  }
+
+  const { data: cert, error } = await query.single();
+
+  if (error || !cert) {
+    document.getElementById('certRecipient').textContent = 'Certificate not found';
+    document.querySelector('.cert-desc').textContent = 'The verification code "' + code + '" does not match any certificate in our records.';
+    document.querySelector('.cert-score-block').style.display = 'none';
+    document.querySelector('.cert-footer').style.display = 'none';
+    return;
+  }
+
+  const org = cert['v2-organizations'] || {};
+
+  // Fill certificate data
+  document.getElementById('certRecipient').textContent = cert.recipient_name || '';
+  document.getElementById('certAssessment').textContent = cert.assessment_name || '';
+  document.getElementById('certScore').innerHTML = (cert.score_percentage || 0) + '<span style="font-size:14px;">%</span>';
+  document.getElementById('certBand').textContent = cert.performance_band || '';
+  document.getElementById('certCode').textContent = cert.verification_code || '';
+
+  // Signatory
+  const sigName = cert.signatory_name || org.signatory_name || 'Arvind Rongala';
+  const sigTitle = cert.signatory_title || org.signatory_title || 'Chief Executive Officer';
+  document.getElementById('certSignature').textContent = sigName;
+  document.getElementById('certSignatoryName').textContent = sigName;
+  document.getElementById('certSignatoryTitle').textContent = sigTitle;
+
+  // Format date
+  if (cert.issued_at) {
+    const d = new Date(cert.issued_at);
+    document.getElementById('certDate').textContent = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  // Apply org branding
+  if (org.logo_url) {
+    document.querySelector('.cert-logo img').src = org.logo_url;
+  }
+  if (org.primary_color) {
+    document.documentElement.style.setProperty('--accent', org.primary_color);
+  }
+
+  // Update page title
+  document.title = 'Certificate — ' + (cert.recipient_name || '') + ' — ' + (cert.assessment_name || '');
+
+  // ============ DOWNLOAD PDF ============
+  window.downloadPDF = function() {
+    const btn = document.getElementById('downloadPdfBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Generating...';
+
+    const element = document.querySelector('.cert-page');
+    const filename = (cert.recipient_name || 'Certificate').replace(/\s+/g, '_') + '_' + (cert.assessment_name || 'Assessment').replace(/\s+/g, '_') + '.pdf';
+
+    html2pdf().set({
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'px', format: [800, 560], orientation: 'landscape' }
+    }).from(element).save().then(function() {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download PDF';
+    });
+  };
+
+  // ============ SHARE ON LINKEDIN ============
+  window.shareLinkedIn = function() {
+    const certUrl = window.location.href;
+    const title = 'Certificate of Achievement — ' + (cert.assessment_name || 'Assessment');
+    const summary = 'I earned a ' + (cert.performance_band || '') + ' grade (' + (cert.score_percentage || 0) + '%) on "' + (cert.assessment_name || '') + '" from ' + (org.name || 'Edstellar') + '.';
+
+    // LinkedIn Add to Profile URL
+    // organizationName must exactly match the LinkedIn Company Page name for the logo to appear
+    const linkedinUrl = 'https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME' +
+      '&name=' + encodeURIComponent(cert.assessment_name || 'Assessment Certification') +
+      '&organizationName=' + encodeURIComponent(org.short_name || org.name || 'Edstellar') +
+      '&issueYear=' + new Date(cert.issued_at).getFullYear() +
+      '&issueMonth=' + (new Date(cert.issued_at).getMonth() + 1) +
+      '&certUrl=' + encodeURIComponent(certUrl) +
+      '&certId=' + encodeURIComponent(cert.verification_code || '');
+
+    window.open(linkedinUrl, '_blank', 'width=600,height=700');
+  };
+})();
+</script>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+</body>
+</html>
