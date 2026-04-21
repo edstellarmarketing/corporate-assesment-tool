@@ -36,4 +36,23 @@ DROP POLICY IF EXISTS "ar_public_insert" ON "v2-assessment-responses";
 CREATE POLICY "ar_public_insert" ON "v2-assessment-responses"
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 
+-- Storage: allow participants to upload files to assessment-uploads bucket
+-- NOTE: You must also create the bucket named "assessment-uploads" in the
+-- Supabase dashboard (Storage → New bucket → Name: assessment-uploads → Public: ON)
+-- before these policies will work.
+
+-- Reset to default schema for storage policies
+SET search_path TO public;
+
+DROP POLICY IF EXISTS "assessment_uploads_insert" ON storage.objects;
+DROP POLICY IF EXISTS "assessment_uploads_select" ON storage.objects;
+
+CREATE POLICY "assessment_uploads_insert" ON storage.objects
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (bucket_id = 'assessment-uploads');
+
+CREATE POLICY "assessment_uploads_select" ON storage.objects
+  FOR SELECT TO anon, authenticated
+  USING (bucket_id = 'assessment-uploads');
+
 DO $$ BEGIN RAISE NOTICE 'Participant RLS policies added successfully.'; END $$;

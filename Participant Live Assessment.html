@@ -1005,7 +1005,8 @@
 
   function renderTokenAssessment(invite, assessment, questions, sb) {
     const totalPts = questions.reduce((s, q) => s + (q.max_points || 10), 0);
-    const answers = {}; // question_id → answer text/choice
+    const answers = {};     // question_id → answer text
+    const fileAnswers = {}; // question_id → File object
 
     let currentIdx = 0;
 
@@ -1064,8 +1065,32 @@
       if (q.type === 'code') {
         return '<textarea id="answerArea" rows="8" placeholder="Write your code here..." style="width:100%;padding:14px;font-family:\'JetBrains Mono\',monospace;font-size:12.5px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);">' + esc(saved) + '</textarea>';
       }
-      const rows = q.type === 'long_text_attachment' ? 6 : 3;
-      return '<textarea id="answerArea" rows="' + rows + '" placeholder="Type your answer here..." style="width:100%;padding:14px;font-family:inherit;font-size:13px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);line-height:1.6;">' + esc(saved) + '</textarea>';
+      if (q.type === 'long_text_attachment') {
+        const existingFile = fileAnswers[q.id];
+        const fileInfo = existingFile
+          ? '<div id="fileInfo" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--ok-soft);border:1px solid var(--ok);margin-top:8px;">' +
+              '<span style="font-size:18px;">📎</span>' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:12px;font-weight:600;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(existingFile.name) + '</div>' +
+                '<div style="font-size:11px;color:var(--ink-mute);">' + (existingFile.size / (1024*1024)).toFixed(2) + ' MB</div>' +
+              '</div>' +
+              '<button onclick="tokenClearFile(\'' + q.id + '\')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:18px;line-height:1;" title="Remove">×</button>' +
+            '</div>'
+          : '<div id="fileInfo" style="display:none;"></div>';
+        return '<textarea id="answerArea" rows="6" placeholder="Type your written response here..." style="width:100%;padding:14px;font-family:inherit;font-size:13px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);line-height:1.6;">' + esc(saved) + '</textarea>' +
+          '<div style="margin-top:12px;">' +
+            '<label id="fileDropZone" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;border:2px dashed var(--rule);cursor:pointer;background:var(--paper);transition:border-color 0.2s;" ' +
+              'onmouseover="this.style.borderColor=\'var(--edstellar)\'" onmouseout="this.style.borderColor=\'var(--rule)\'">' +
+              '<span style="font-size:28px;">📁</span>' +
+              '<span style="font-size:13px;font-weight:600;color:var(--ink);">Click to attach a file</span>' +
+              '<span style="font-size:11px;color:var(--ink-faint);">PDF, Word, Excel, CSV, PowerPoint, HTML · Max 10 MB</span>' +
+              '<input type="file" id="fileInput_' + q.id + '" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.ppt,.pptx,.html,.htm" style="display:none;" onchange="tokenHandleFile(\'' + q.id + '\',this)">' +
+            '</label>' +
+            fileInfo +
+            '<div id="fileError" style="color:var(--accent);font-size:12px;margin-top:6px;display:none;"></div>' +
+          '</div>';
+      }
+      return '<textarea id="answerArea" rows="3" placeholder="Type your answer here..." style="width:100%;padding:14px;font-family:inherit;font-size:13px;border:1px solid var(--rule);background:var(--paper-warm);resize:vertical;outline:none;color:var(--ink);line-height:1.6;">' + esc(saved) + '</textarea>';
     }
 
     function saveCurrentAnswer() {
@@ -1073,15 +1098,74 @@
       if (q.type === 'mcq') return; // saved by onchange
       const el = document.getElementById('answerArea');
       if (el) answers[q.id] = el.value;
+      // file already stored in fileAnswers by tokenHandleFile
     }
 
     window.tokenSaveMcq = function(qid, val) { answers[qid] = val; };
+
+    window.tokenHandleFile = function(qid, input) {
+      const file = input.files[0];
+      if (!file) return;
+      const errEl = document.getElementById('fileError');
+      if (file.size > 10 * 1024 * 1024) {
+        if (errEl) { errEl.textContent = 'File exceeds 10 MB limit. Please choose a smaller file.'; errEl.style.display = 'block'; }
+        input.value = '';
+        return;
+      }
+      if (errEl) errEl.style.display = 'none';
+      fileAnswers[qid] = file;
+      const infoEl = document.getElementById('fileInfo');
+      if (infoEl) {
+        infoEl.style.display = 'flex';
+        infoEl.style.alignItems = 'center';
+        infoEl.style.gap = '8px';
+        infoEl.style.padding = '10px 14px';
+        infoEl.style.background = 'var(--ok-soft)';
+        infoEl.style.border = '1px solid var(--ok)';
+        infoEl.style.marginTop = '8px';
+        infoEl.innerHTML =
+          '<span style="font-size:18px;">📎</span>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:12px;font-weight:600;color:var(--ok);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(file.name) + '</div>' +
+            '<div style="font-size:11px;color:var(--ink-mute);">' + (file.size / (1024*1024)).toFixed(2) + ' MB</div>' +
+          '</div>' +
+          '<button onclick="tokenClearFile(\'' + qid + '\')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:18px;line-height:1;" title="Remove">×</button>';
+      }
+    };
+
+    window.tokenClearFile = function(qid) {
+      delete fileAnswers[qid];
+      const infoEl = document.getElementById('fileInfo');
+      if (infoEl) { infoEl.style.display = 'none'; infoEl.innerHTML = ''; }
+      const input = document.getElementById('fileInput_' + qid);
+      if (input) input.value = '';
+    };
+
     window.tokenPrev = function() { saveCurrentAnswer(); currentIdx--; renderQ(); };
     window.tokenNext = async function(isLast) {
       saveCurrentAnswer();
       if (isLast) {
         const btn = document.getElementById('tokenNextBtn');
-        if (btn) { btn.disabled = true; btn.textContent = 'Submitting...'; }
+        if (btn) { btn.disabled = true; btn.textContent = 'Uploading files...'; }
+
+        // Upload any attached files to Supabase Storage
+        const fileUrls = {};
+        for (const q of questions) {
+          const file = fileAnswers[q.id];
+          if (!file) continue;
+          const path = invite.id + '/' + q.id + '/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const { data: upData, error: upErr } = await sb.storage
+            .from('assessment-uploads')
+            .upload(path, file, { contentType: file.type, upsert: true });
+          if (!upErr && upData) {
+            const { data: urlData } = sb.storage.from('assessment-uploads').getPublicUrl(upData.path);
+            fileUrls[q.id] = urlData.publicUrl;
+          } else if (upErr) {
+            console.warn('[upload] failed for q', q.id, upErr.message);
+          }
+        }
+
+        if (btn) btn.textContent = 'Submitting...';
         // Save all responses
         const rows = questions.map(q => ({
           invite_id: invite.id,
@@ -1089,6 +1173,7 @@
           question_id: q.id,
           answer_text: q.type !== 'mcq' ? (answers[q.id] || '') : null,
           answer_choice: q.type === 'mcq' ? (answers[q.id] || null) : null,
+          attachment_url: fileUrls[q.id] || null,
         }));
         await sb.from('v2-assessment-responses').insert(rows);
         await sb.from('v2-assessment-invites').update({
