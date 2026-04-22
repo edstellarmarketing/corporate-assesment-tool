@@ -392,7 +392,7 @@
         '<td>' +
           '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
             '<a href="admin_assessment_editor.html?id=' + a.id + '" class="btn btn-ghost btn-sm">Edit</a>' +
-            (a._submissionCount > 0 ? '<button class="btn btn-ghost btn-sm" onclick="viewReports(\'' + a.id + '\', \'' + (a.title || '').replace(/'/g, "\\'") + '\')">Reports</button>' : '') +
+            (a._submissionCount > 0 ? (a.scope === 'group' ? '<a href="admin_assessment_report.html?assessment=' + a.id + '" class="btn btn-ghost btn-sm">Group Report</a>' : '<button class="btn btn-ghost btn-sm" onclick="viewReports(\'' + a.id + '\', \'' + (a.title || '').replace(/'/g, "\\'") + '\')">Reports</button>') : '') +
             '<button class="btn btn-danger btn-sm" onclick="confirmDelete(\'' + a.id + '\', \'' + (a.title || '').replace(/'/g, "\\'") + '\')">Delete</button>' +
           '</div>' +
         '</td>' +

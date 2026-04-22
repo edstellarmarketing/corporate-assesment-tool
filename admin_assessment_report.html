@@ -241,10 +241,344 @@
   const urlParams = new URLSearchParams(window.location.search);
   const sessionId = urlParams.get('session');
   const inviteId = urlParams.get('invite');
+  const assessmentId = urlParams.get('assessment');
 
-  if (!sessionId && !inviteId) {
-    showToast('No session or invite ID provided', 'error');
+  if (!sessionId && !inviteId && !assessmentId) {
+    showToast('No session, invite, or assessment ID provided', 'error');
     return;
+  }
+
+  // ============ GROUP COMPARISON MODE (?assessment=<id>) ============
+  if (assessmentId) {
+    const [assessRes, invitesRes, questionsRes] = await Promise.all([
+      sb.from('v2-assessments').select('*').eq('id', assessmentId).single(),
+      sb.from('v2-assessment-invites').select('*').eq('assessment_id', assessmentId).order('submitted_at', { ascending: false }),
+      sb.from('v2-assessment-questions').select('*').eq('assessment_id', assessmentId).order('order_index')
+    ]);
+
+    const assess = assessRes.data;
+    if (!assess) { showToast('Assessment not found', 'error'); return; }
+
+    const invites = invitesRes.data || [];
+    const questions = questionsRes.data || [];
+    const inviteIds = invites.map(i => i.id);
+
+    const [resultsRes, responsesRes] = await Promise.all([
+      inviteIds.length ? sb.from('v2-assessment-results').select('*').in('invite_id', inviteIds) : Promise.resolve({ data: [] }),
+      inviteIds.length ? sb.from('v2-assessment-responses').select('*').eq('assessment_id', assessmentId) : Promise.resolve({ data: [] })
+    ]);
+
+    const resultMap = {};
+    (resultsRes.data || []).forEach(r => { resultMap[r.invite_id] = r; });
+
+    const responseMap = {};
+    (responsesRes.data || []).forEach(r => {
+      if (!responseMap[r.invite_id]) responseMap[r.invite_id] = {};
+      responseMap[r.invite_id][r.question_id] = r;
+    });
+
+    const totalPts = questions.reduce((s, q) => s + (q.max_points || 10), 0);
+
+    const participants = invites.map(inv => ({
+      invite: inv,
+      result: resultMap[inv.id] || null,
+      score: resultMap[inv.id]?.score ?? null,
+      totalPoints: resultMap[inv.id]?.total_points ?? totalPts,
+      passed: resultMap[inv.id]?.passed ?? null,
+      status: inv.status
+    })).sort((a, b) => {
+      if (a.score !== null && b.score !== null) return b.score - a.score;
+      if (a.score !== null) return -1;
+      if (b.score !== null) return 1;
+      return 0;
+    });
+
+    // Header
+    document.title = 'Group Report — ' + (assess.title || 'Assessment');
+    document.getElementById('rpName').textContent = assess.title || 'Assessment';
+    document.getElementById('rpMeta').textContent = 'Group assessment · ' + invites.length + ' participants';
+    document.getElementById('rpAssessTitle').textContent = 'Group';
+    document.getElementById('rpSubmitted').textContent = invites.filter(i => i.status !== 'invited').length + ' submitted';
+    document.getElementById('rpDuration').textContent = (assess.time_limit_minutes || '--') + ' min';
+
+    const gradedCount = participants.filter(p => p.score !== null).length;
+    document.getElementById('rpScore').innerHTML = gradedCount + '<span class="denom">/' + invites.length + '</span>';
+    document.getElementById('rpPct').textContent = 'graded';
+    const gpBadge = document.getElementById('rpBadge');
+    gpBadge.textContent = 'GROUP';
+    gpBadge.className = 'rh-badge pass';
+
+    const submittedCount = participants.filter(p => p.status !== 'invited').length;
+    const avgPct = gradedCount > 0 ? Math.round(participants.filter(p => p.score !== null).reduce((s, p) => s + (p.totalPoints > 0 ? p.score / p.totalPoints * 100 : 0), 0) / gradedCount) : 0;
+    document.getElementById('smScore').innerHTML = submittedCount + '<span class="unit"> submitted</span>';
+    document.getElementById('smAnswered').innerHTML = gradedCount + '<span class="unit"> graded</span>';
+    document.getElementById('smCorrect').innerHTML = gradedCount > 0 ? avgPct + '<span class="unit">% avg</span>' : '--';
+    document.getElementById('smPassing').innerHTML = (assess.passing_score || 60) + '<span class="unit">%</span>';
+
+    // Action buttons
+    const gradeBtnEl = document.getElementById('gradeBtn');
+    gradeBtnEl.removeAttribute('onclick');
+    const ungradedCount = participants.filter(p => (p.status === 'submitted') && p.score === null).length;
+    gradeBtnEl.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> ' + (ungradedCount > 0 ? 'Grade All (' + ungradedCount + ' pending)' : 'Re-grade All');
+    document.getElementById('sendBtn').style.display = 'none';
+    document.getElementById('issueCertBtn').style.display = 'none';
+
+    const compareBtn = document.createElement('button');
+    compareBtn.className = 'btn btn-accent';
+    compareBtn.id = 'compareBtn';
+    compareBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Generate Comparison Report';
+    document.querySelector('.actions').insertBefore(compareBtn, document.getElementById('sendBtn'));
+
+    // AI section
+    const aiBody = document.getElementById('aiBody');
+    if (assess.group_comparison_report) {
+      renderComparisonReport(assess.group_comparison_report, aiBody);
+      compareBtn.innerHTML = compareBtn.innerHTML.replace('Generate', 'Regenerate');
+    } else {
+      aiBody.innerHTML = '<div class="ai-loading">No comparison yet. Grade all participants first, then click "Generate Comparison Report".</div>';
+    }
+
+    // Leaderboard
+    document.getElementById('qBreakdownMeta').textContent = participants.length + ' participants';
+    function renderLeaderboard() {
+      const container = document.getElementById('questionsBreakdown');
+      const medals = ['🥇', '🥈', '🥉'];
+      let html = '<div style="overflow-x:auto;"><table class="data-table"><thead><tr>' +
+        '<th>Rank</th><th>Participant</th><th>Score</th><th>%</th><th>Result</th><th>Status</th><th>Action</th>' +
+        '</tr></thead><tbody>';
+      participants.forEach((p, i) => {
+        const rank = medals[i] || (i + 1);
+        const pct = p.totalPoints > 0 && p.score !== null ? Math.round(p.score / p.totalPoints * 100) : null;
+        const passed = pct !== null && pct >= (assess.passing_score || 60);
+        const name = p.invite.name || p.invite.email.split('@')[0];
+        const rowStyle = i === 0 && p.score !== null ? ' style="background:#fffbeb;border-left:3px solid #d97706;"' : '';
+        html += '<tr' + rowStyle + '>' +
+          '<td style="font-size:16px;">' + rank + '</td>' +
+          '<td><strong style="color:var(--ink);">' + escHtml(name) + '</strong><div style="font-size:11px;color:var(--ink-faint);">' + escHtml(p.invite.email) + '</div></td>' +
+          '<td class="mono">' + (p.score !== null ? p.score + '/' + p.totalPoints : '--') + '</td>' +
+          '<td class="mono">' + (pct !== null ? pct + '%' : '--') + '</td>' +
+          '<td>' + (pct !== null ? '<span class="status-tag ' + (passed ? 'passed' : 'failed') + '">' + (passed ? 'Passed' : 'Failed') + '</span>' : '--') + '</td>' +
+          '<td><span class="status-tag ' + p.invite.status + '">' + p.invite.status + '</span></td>' +
+          '<td><a href="admin_assessment_report.html?invite=' + p.invite.id + '" class="btn btn-ghost btn-sm">View Report</a></td>' +
+        '</tr>';
+      });
+      html += '</tbody></table></div>';
+      container.innerHTML = html;
+    }
+    renderLeaderboard();
+
+    function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''; }
+
+    function renderComparisonReport(report, container) {
+      let html = '<div class="ai-feedback">';
+      if (report.winner_email) {
+        html += '<div style="padding:16px 20px;background:#fef3c7;border:1px solid #d97706;margin-bottom:16px;">' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:#92400e;font-weight:600;margin-bottom:8px;">🏆 Top Performer</div>' +
+          '<div style="font-size:15px;font-weight:600;color:var(--ink);">' + escHtml(report.winner_email) + '</div>' +
+          '<p style="font-size:13px;color:var(--ink-soft);margin-top:8px;line-height:1.7;">' + escHtml(report.winner_reason) + '</p>' +
+        '</div>';
+      }
+      if (report.skill_gap_summary) {
+        html += '<div style="padding:14px 16px;background:var(--warn-soft);border:1px solid var(--warn);border-left:3px solid var(--warn);margin-bottom:16px;">' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--warn);font-weight:600;margin-bottom:6px;">Team Skill Gap</div>' +
+          '<p style="font-size:13px;color:var(--ink-soft);line-height:1.7;">' + escHtml(report.skill_gap_summary) + '</p>' +
+        '</div>';
+      }
+      if (report.standout_moment) {
+        html += '<div style="padding:14px 16px;background:var(--ok-soft);border:1px solid var(--ok);margin-bottom:16px;">' +
+          '<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--ok);font-weight:600;margin-bottom:6px;">⭐ Standout Moment</div>' +
+          '<p style="font-size:13px;color:var(--ink-soft);line-height:1.7;"><strong>' + escHtml(report.standout_moment.email) + '</strong> — Q' + (report.standout_moment.question_index || '') + ': ' + escHtml(report.standout_moment.note) + '</p>' +
+        '</div>';
+      }
+      if (report.per_question && report.per_question.length) {
+        html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--edstellar);font-weight:600;margin-bottom:10px;">Per-Question Winners</div>';
+        report.per_question.forEach(pq => {
+          html += '<div style="border:1px solid var(--rule);margin-bottom:8px;padding:12px 16px;">' +
+            '<div style="font-size:12px;font-weight:600;color:var(--ink);">Q' + pq.question_index + ' — Best: <span style="color:var(--ok);">' + escHtml(pq.winner_email) + '</span></div>' +
+            '<p style="font-size:12px;color:var(--ink-soft);margin-top:6px;line-height:1.6;">' + escHtml(pq.winner_reason) + '</p>' +
+            (pq.common_mistakes ? '<p style="font-size:11px;color:var(--bad);margin-top:4px;">Common mistake: ' + escHtml(pq.common_mistakes) + '</p>' : '') +
+          '</div>';
+        });
+      }
+      if (report.individual_recommendations && report.individual_recommendations.length) {
+        html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--edstellar);font-weight:600;margin:16px 0 10px;">Individual Recommendations</div>';
+        report.individual_recommendations.forEach(ir => {
+          html += '<div style="border:1px solid var(--rule);margin-bottom:8px;padding:12px 16px;">' +
+            '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;">' + escHtml(ir.email) + '</div><ul style="margin:0;padding-left:18px;">';
+          (ir.recommendations || []).forEach(rec => { html += '<li style="font-size:12px;color:var(--ink-soft);margin-bottom:3px;">' + escHtml(rec) + '</li>'; });
+          html += '</ul></div>';
+        });
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    async function getOpenRouterKey() {
+      const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+      let key = '', model = 'anthropic/claude-sonnet-4';
+      (settingsRows || []).forEach(row => {
+        let val = row.value; try { val = typeof val === 'string' ? JSON.parse(val) : val; } catch(e) {}
+        if (row.key === 'openrouterKey' || row.key === 'openrouter_key') key = val;
+        if (row.key === 'routeGrading') model = val;
+      });
+      if (!key) { try { const ls = JSON.parse(localStorage.getItem('edstellar_settings') || '{}'); if (ls.openrouterKey) key = ls.openrouterKey; } catch(e) {} }
+      return { key, model };
+    }
+
+    async function fetchAttachmentText(url) {
+      if (!url) return '';
+      try {
+        const r = await fetch(url);
+        if (!r.ok) return '[Attachment unavailable]';
+        const ct = r.headers.get('content-type') || '';
+        if (ct.includes('text') || ct.includes('html') || ct.includes('csv') || ct.includes('json') || ct.includes('xml')) {
+          const txt = await r.text();
+          return 'Attached file:\n' + (txt.length > 5000 ? txt.substring(0, 5000) + '\n[truncated]' : txt);
+        }
+        return '[Binary attachment: ' + url + ']';
+      } catch(e) { return '[Attachment: ' + url + ']'; }
+    }
+
+    // Grade All handler
+    gradeBtnEl.addEventListener('click', async function() {
+      const btn = this;
+      btn.disabled = true;
+      const { key: orKey, model: orModel } = await getOpenRouterKey();
+      if (!orKey) { showToast('OpenRouter API key not configured', 'error'); btn.disabled = false; return; }
+
+      const toGrade = participants.filter(p => ['submitted', 'started'].includes(p.invite.status));
+      let doneCount = 0;
+
+      for (const participant of toGrade) {
+        btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Grading ' + (++doneCount) + '/' + toGrade.length + '...';
+        const invRespMap = responseMap[participant.invite.id] || {};
+        let totalScore = 0;
+        const gradedCriteria = [];
+
+        for (const q of questions) {
+          const r = invRespMap[q.id] || {};
+          let pts = 0, isCorrect = false, feedback = '';
+          let opts = []; try { opts = Array.isArray(q.options) ? q.options : (q.options ? JSON.parse(q.options) : []); } catch(e) {}
+
+          if (q.type === 'mcq') {
+            const correctOpt = opts.find(o => o.is_correct);
+            const correctText = correctOpt ? (correctOpt.text || correctOpt.label || '') : (q.correct_answer || '');
+            isCorrect = r.answer_choice === correctText;
+            pts = isCorrect ? (q.max_points || 10) : 0;
+            feedback = isCorrect ? 'Correct' : 'Incorrect — correct answer: ' + correctText;
+          } else if (r.answer_text || r.attachment_url) {
+            const attachText = await fetchAttachmentText(r.attachment_url);
+            const combined = [r.answer_text || '', attachText].filter(Boolean).join('\n\n');
+            try {
+              const gr = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + orKey, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: orModel, messages: [
+                  { role: 'system', content: 'You are grading an assessment answer. Respond ONLY with JSON: {"score": <number>, "feedback": "<text>"}. Score must be 0 to max_points.' },
+                  { role: 'user', content: 'Question: ' + q.prompt + '\n\nAnswer:\n' + combined + '\n\nMax points: ' + (q.max_points || 10) }
+                ]})
+              });
+              const gj = await gr.json();
+              let parsed = {}; try { parsed = JSON.parse((gj.choices?.[0]?.message?.content || '{}').replace(/```json|```/g,'').trim()); } catch(e) {}
+              pts = Math.min(q.max_points || 10, Math.max(0, parsed.score || 0));
+              feedback = parsed.feedback || '';
+              isCorrect = pts >= (q.max_points || 10);
+            } catch(e) { feedback = 'Grading error: ' + e.message; }
+          } else {
+            feedback = 'Not answered';
+          }
+          totalScore += pts;
+          gradedCriteria.push({ question_id: q.id, points_earned: pts, is_correct: isCorrect, feedback });
+        }
+
+        const pct = totalPts > 0 ? Math.round(totalScore / totalPts * 100) : 0;
+        const passed = pct >= (assess.passing_score || 60);
+        let narrative = '';
+        try {
+          const nr = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + orKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: orModel, messages: [
+              { role: 'system', content: 'Write a concise 2-3 sentence grading summary.' },
+              { role: 'user', content: 'Participant: ' + (participant.invite.name || participant.invite.email) + '\nScore: ' + totalScore + '/' + totalPts + ' (' + pct + '%) — ' + (passed ? 'PASSED' : 'NOT PASSED') }
+            ]})
+          });
+          const nj = await nr.json(); narrative = nj.choices?.[0]?.message?.content || '';
+        } catch(e) {}
+
+        await sb.from('v2-assessment-results').upsert({ invite_id: participant.invite.id, assessment_id: assessmentId, score: totalScore, total_points: totalPts, passed, ai_feedback: narrative, criteria_scores: gradedCriteria, graded_at: new Date().toISOString() }, { onConflict: 'invite_id' });
+        await sb.from('v2-assessment-invites').update({ status: 'graded' }).eq('id', participant.invite.id);
+      }
+      showToast('All participants graded', 'success');
+      window.location.reload();
+    });
+
+    // Generate Comparison handler
+    compareBtn.addEventListener('click', async function() {
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Generating...';
+      aiBody.innerHTML = '<div class="ai-loading">Generating AI comparison report — this may take a moment...</div>';
+
+      const { key: orKey, model: orModel } = await getOpenRouterKey();
+      if (!orKey) {
+        aiBody.innerHTML = '<div style="color:var(--bad);padding:20px;">OpenRouter API key not configured. Go to <a href="settings.html" style="color:var(--edstellar);">Settings</a>.</div>';
+        btn.disabled = false; btn.innerHTML = btn.innerHTML.replace('Generating...', 'Generate Comparison Report');
+        return;
+      }
+
+      const gradedParticipants = participants.filter(p => p.score !== null);
+      if (gradedParticipants.length < 2) {
+        showToast('Grade at least 2 participants before generating comparison', 'warn');
+        btn.disabled = false; btn.innerHTML = btn.innerHTML.replace('Generating...', 'Generate Comparison Report');
+        return;
+      }
+
+      const participantData = gradedParticipants.map(p => ({
+        email: p.invite.email,
+        name: p.invite.name || p.invite.email.split('@')[0],
+        score: p.score,
+        total_points: p.totalPoints,
+        ai_feedback: p.result?.ai_feedback || '',
+        answers: questions.map((q, qi) => {
+          const r = (responseMap[p.invite.id] || {})[q.id] || {};
+          const crit = (p.result?.criteria_scores || []).find(c => c.question_id === q.id) || {};
+          return { question_index: qi + 1, prompt: q.prompt, type: q.type, answer: r.answer_text || r.answer_choice || '(not answered)', attachment_url: r.attachment_url || null, points_earned: crit.points_earned ?? null, max_points: q.max_points || 10, ai_feedback: crit.feedback || '' };
+        })
+      }));
+
+      const prompt = 'Assessment: "' + (assess.title || '') + '"\n\nQuestions:\n' +
+        questions.map((q, i) => 'Q' + (i+1) + ': ' + q.prompt + ' (' + (q.max_points||10) + ' pts)').join('\n') +
+        '\n\nParticipants and their answers:\n' + JSON.stringify(participantData, null, 2) +
+        '\n\nGenerate a group comparison report. Respond ONLY with this JSON structure:\n' +
+        '{"winner_email":"...","winner_reason":"specific reason citing actual answer content","per_question":[{"question_index":1,"winner_email":"...","winner_reason":"...","common_mistakes":"..."}],"skill_gap_summary":"...","standout_moment":{"email":"...","question_index":1,"note":"..."},"individual_recommendations":[{"email":"...","recommendations":["...","...","..."]}]}';
+
+      try {
+        const cr = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + orKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: orModel, messages: [
+            { role: 'system', content: 'You are an expert assessment evaluator comparing multiple participants. Be specific — cite actual answer content. Respond with valid JSON only.' },
+            { role: 'user', content: prompt }
+          ]})
+        });
+        const cj = await cr.json();
+        let report = null;
+        try { report = JSON.parse((cj.choices?.[0]?.message?.content || '{}').replace(/```json|```/g,'').trim()); } catch(e) { throw new Error('AI did not return valid JSON'); }
+
+        await sb.from('v2-assessments').update({ group_comparison_report: report, group_report_generated_at: new Date().toISOString() }).eq('id', assessmentId);
+        renderComparisonReport(report, aiBody);
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Regenerate Comparison Report';
+        showToast('Comparison report generated', 'success');
+      } catch(e) {
+        showToast('Comparison failed: ' + e.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Generate Comparison Report';
+      }
+    });
+
+    return; // stop other flows
   }
 
   // ============ INVITE FLOW (wizard-based token submissions) ============
@@ -305,7 +639,7 @@
         isCorrect = isAnswered && userAnswer === correctAnswer;
       } else {
         userAnswer = r.answer_text || '';
-        isAnswered = !!userAnswer;
+        isAnswered = !!(userAnswer || r.attachment_url);
         isCorrect = !!(crit.points_earned >= (q.max_points || 10));
       }
       if (isAnswered) answeredCount++;
@@ -432,7 +766,21 @@
           return;
         }
 
-        // Grade each non-MCQ question
+        async function fetchAttachText(url) {
+          if (!url) return '';
+          try {
+            const r = await fetch(url);
+            if (!r.ok) return '[Attachment unavailable]';
+            const ct = r.headers.get('content-type') || '';
+            if (ct.includes('text') || ct.includes('html') || ct.includes('csv') || ct.includes('json') || ct.includes('xml')) {
+              const txt = await r.text();
+              return 'Attached file content:\n' + (txt.length > 5000 ? txt.substring(0, 5000) + '\n[truncated]' : txt);
+            }
+            return '[Binary attachment — URL: ' + url + ']';
+          } catch(e) { return '[Attachment: ' + url + ']'; }
+        }
+
+        // Grade each question, including attachment content for long_text_attachment
         let newTotalScore = 0;
         const gradedCriteria = [];
         for (const q of qResults) {
@@ -441,6 +789,8 @@
             gradedCriteria.push({ question_id: questions[q.idx - 1].id, points_earned: pts, is_correct: q.isCorrect, feedback: q.isCorrect ? 'Correct' : 'Incorrect — correct answer: ' + q.correctAnswer });
             newTotalScore += pts;
           } else if (q.isAnswered) {
+            const attachText = await fetchAttachText(q.attachmentUrl);
+            const combinedAnswer = [q.userAnswer, attachText].filter(Boolean).join('\n\n') || '(no answer)';
             const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + openrouterKey, 'Content-Type': 'application/json' },
@@ -448,7 +798,7 @@
                 model: aiModel,
                 messages: [
                   { role: 'system', content: 'You are grading an assessment answer. Respond ONLY with JSON: {"score": <number>, "feedback": "<text>"}. Score must be 0 to max_points.' },
-                  { role: 'user', content: 'Question: ' + q.prompt + '\n\nAnswer: ' + q.userAnswer + '\n\nMax points: ' + q.maxPts }
+                  { role: 'user', content: 'Question: ' + q.prompt + '\n\nAnswer:\n' + combinedAnswer + '\n\nMax points: ' + q.maxPts }
                 ]
               })
             });
