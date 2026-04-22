@@ -10,7 +10,7 @@ const SETTINGS_KEY = 'edstellar_settings';
 
 const DEFAULT_SUPABASE_URL = window.env?.SUPABASE_URL || '';
 const DEFAULT_SUPABASE_ANON_KEY = window.env?.SUPABASE_ANON_KEY || '';
-const DEFAULT_SUPABASE_SERVICE_KEY = window.env?.SUPABASE_SERVICE_KEY || '';
+// Service role key is NOT loaded from env (env endpoint is public). Admin enters it manually in Settings.
 
 let _supabaseClient = null;
 let _currentUser = null;
@@ -37,9 +37,9 @@ function _getConfig() {
 function getAdminClient() {
   const { url } = _getConfig();
   const saved = (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch { return {}; } })();
-  const serviceKey = saved.supabaseServiceKey || DEFAULT_SUPABASE_SERVICE_KEY;
+  const serviceKey = saved.supabaseServiceKey || '';
   if (!url || !serviceKey) {
-    console.warn('[supabase-client] No service role key configured in Settings.');
+    console.warn('[supabase-client] Service role key not found. Enter it in Settings → Supabase → Service Role Key.');
     return null;
   }
   return supabase.createClient(url, serviceKey, {
