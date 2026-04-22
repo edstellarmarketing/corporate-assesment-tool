@@ -705,8 +705,22 @@
 
     function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
-    function attachmentCard(url) {
-      if (!url) return '';
+    function attachmentCard(url, questionType) {
+      if (!url) {
+        if (questionType === 'long_text_attachment') {
+          return '<div class="q-answer-block">' +
+            '<div class="q-answer-label">&#128206; Attached file</div>' +
+            '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:#fef9ec;border:1px solid #e6c97a;margin-top:6px;">' +
+              '<span style="font-size:20px;flex-shrink:0;">&#9888;&#65039;</span>' +
+              '<div>' +
+                '<div style="font-size:12.5px;font-weight:600;color:#8a5a00;margin-bottom:4px;">File not received</div>' +
+                '<div style="font-size:12px;color:#7a5200;line-height:1.6;">The participant attempted to attach a file but it was not saved (the storage bucket was not configured at the time of submission). Use the <strong>Request Resubmission</strong> button above to let them retake and re-upload their file.</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }
+        return '';
+      }
       const urlParts = url.split('/');
       const rawName = decodeURIComponent(urlParts[urlParts.length - 1] || 'file');
       const filename = rawName.replace(/^\d+_/, '');
@@ -780,13 +794,11 @@
             ? '<pre style="white-space:pre-wrap;font-family:JetBrains Mono,monospace;font-size:11px;margin:0;line-height:1.6;">' + escHtml(q.userAnswer) + '</pre>'
             : '<div style="font-size:13px;color:var(--ink-soft);line-height:1.75;white-space:pre-wrap;">' + escHtml(q.userAnswer) + '</div>';
           detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s written answer</div><div class="q-answer-text">' + ansBlock + '</div></div>';
-        } else if (!q.attachmentUrl) {
+        } else if (!q.attachmentUrl && q.type !== 'long_text_attachment') {
           detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text" style="color:var(--ink-faint);font-style:italic;">No answer provided</div></div>';
         }
-        // Attachment (rich display)
-        if (q.attachmentUrl) {
-          detail += attachmentCard(q.attachmentUrl);
-        }
+        // Attachment (rich display, or warning if missing on attachment-type question)
+        detail += attachmentCard(q.attachmentUrl, q.type);
       }
 
       if (q.feedback) {
@@ -926,6 +938,36 @@
         btn.innerHTML = 'Grade with AI';
       }
     });
+
+    // Request Resubmission button
+    const missingAttachments = qResults.filter(q => q.type === 'long_text_attachment' && !q.attachmentUrl);
+    if (missingAttachments.length > 0) {
+      const resubBtn = document.createElement('button');
+      resubBtn.className = 'btn btn-ghost';
+      resubBtn.style.borderColor = '#e6c97a';
+      resubBtn.style.color = '#8a5a00';
+      resubBtn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg> Request Resubmission (' + missingAttachments.length + ' file' + (missingAttachments.length > 1 ? 's' : '') + ' missing)';
+      resubBtn.title = 'Resets this submission so the participant can retake and re-upload their file(s)';
+      document.querySelector('.actions').insertBefore(resubBtn, document.querySelector('.actions').lastElementChild);
+
+      resubBtn.addEventListener('click', async function() {
+        const confirmed = confirm('This will delete the existing submission and reset the invite so ' + invName + ' can retake the assessment and re-upload their file(s).\n\nTheir text answers will be lost. Are you sure?');
+        if (!confirmed) return;
+        resubBtn.disabled = true;
+        resubBtn.innerHTML = 'Resetting...';
+        try {
+          await sb.from('v2-assessment-responses').delete().eq('invite_id', inviteId);
+          await sb.from('v2-assessment-results').delete().eq('invite_id', inviteId);
+          await sb.from('v2-assessment-invites').update({ status: 'invited', submitted_at: null }).eq('id', inviteId);
+          showToast('Reset done — participant can now retake the assessment', 'success');
+          setTimeout(() => { window.location.href = 'admin_reports.html#submissions'; }, 1500);
+        } catch(e) {
+          showToast('Reset failed: ' + e.message, 'error');
+          resubBtn.disabled = false;
+          resubBtn.innerHTML = 'Request Resubmission';
+        }
+      });
+    }
 
     // Hide send button for invite mode (can enhance later)
     const sendBtn = document.getElementById('sendBtn');
