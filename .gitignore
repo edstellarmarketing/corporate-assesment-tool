@@ -2,4 +2,8 @@
 node_modules/
 .env
 .env.local
+.env.*
 .vercel/
+secrets.md
+*credentials*
+*secret*

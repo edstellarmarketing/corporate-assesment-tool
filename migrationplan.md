@@ -5,8 +5,8 @@ Migration from the deleted Supabase instance to the new self-hosted instance und
 ## New instance credentials
 
 - **URL:** `https://supabasekong-dfpiopwrqgdf8iods10d4546.187.127.140.202.sslip.io`
-- **Anon key:** `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoiYW5vbiJ9.[REDACTED]`
-- **Service role key:** `eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc3NjI1MjMwMCwiZXhwIjo0OTMxOTI1OTAwLCJyb2xlIjoic2VydmljZV9yb2xlIn0.[REDACTED]`
+- **Anon key:** stored in Vercel env var `SERVICE_SUPABASEANON_KEY` — do not commit here
+- **Service role key:** stored in Vercel env var `SERVICE_SUPABASESERVICE_KEY` — do not commit here
 - **Target schema:** `Corporate-Assessment-Tool`
 - **Admin email:** `marketing@edstellar.com` (shared with Marketing-PM-Tool; single `auth.users` row, two per-schema profile rows)
 
