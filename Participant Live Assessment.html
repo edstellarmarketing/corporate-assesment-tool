@@ -1150,6 +1150,7 @@
 
         // Upload any attached files to Supabase Storage
         const fileUrls = {};
+        const uploadErrors = [];
         for (const q of questions) {
           const file = fileAnswers[q.id];
           if (!file) continue;
@@ -1161,8 +1162,14 @@
             const { data: urlData } = sb.storage.from('assessment-uploads').getPublicUrl(upData.path);
             fileUrls[q.id] = urlData.publicUrl;
           } else if (upErr) {
-            console.warn('[upload] failed for q', q.id, upErr.message);
+            console.error('[upload] failed for q', q.id, upErr.message);
+            uploadErrors.push(file.name);
           }
+        }
+        if (uploadErrors.length > 0) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Submit'; }
+          alert('File upload failed for: ' + uploadErrors.join(', ') + '\n\nPlease check your internet connection and try again. Your answers are saved — only the file upload failed.');
+          return;
         }
 
         if (btn) btn.textContent = 'Submitting...';
