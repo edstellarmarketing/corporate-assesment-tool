@@ -122,6 +122,22 @@
   .corner-mark { position: fixed; bottom: 14px; right: 16px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase; }
   @keyframes sb-spin { to { transform: rotate(360deg); } }
 
+  /* Leaderboard table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .data-table th { padding: 9px 14px; text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; color: var(--ink-mute); background: var(--paper-warm); border-bottom: 1px solid var(--rule); }
+  .data-table td { padding: 10px 14px; border-bottom: 1px solid var(--rule-soft); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--paper-warm); }
+
+  /* Status tags */
+  .status-tag { display: inline-block; padding: 2px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid; }
+  .status-tag.passed { color: var(--ok); background: var(--ok-soft); border-color: #c5e0ce; }
+  .status-tag.failed { color: var(--bad); background: var(--bad-soft); border-color: #e8c0b6; }
+  .status-tag.submitted { color: var(--warn); background: var(--warn-soft); border-color: #e6c97a; }
+  .status-tag.graded { color: var(--ok); background: var(--ok-soft); border-color: #c5e0ce; }
+  .status-tag.invited { color: var(--ink-faint); background: var(--paper-warm); border-color: var(--rule); }
+  .status-tag.started { color: var(--edstellar); background: var(--edstellar-mist); border-color: #c5d5f5; }
+
   @media (max-width: 768px) {
     .main { padding: 20px 16px 40px; }
     .report-header { flex-direction: column; }
@@ -689,37 +705,90 @@
 
     function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
+    function attachmentCard(url) {
+      if (!url) return '';
+      const urlParts = url.split('/');
+      const rawName = decodeURIComponent(urlParts[urlParts.length - 1] || 'file');
+      const filename = rawName.replace(/^\d+_/, '');
+      const ext = (filename.split('.').pop() || '').toLowerCase();
+      const fileIcons = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', csv:'📊', ppt:'📋', pptx:'📋', html:'🌐', htm:'🌐', txt:'📄', png:'🖼', jpg:'🖼', jpeg:'🖼', gif:'🖼', webp:'🖼', svg:'🖼' };
+      const icon = fileIcons[ext] || '📎';
+      const isImage = ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+      const isPdf = ext === 'pdf';
+      let inner = '';
+      if (isImage) {
+        inner = '<img src="' + escHtml(url) + '" alt="' + escHtml(filename) + '" style="max-width:100%;max-height:340px;object-fit:contain;display:block;border:1px solid var(--rule);margin-top:8px;">';
+      } else if (isPdf) {
+        inner = '<iframe src="' + escHtml(url) + '" style="width:100%;height:440px;border:1px solid var(--rule);display:block;margin-top:8px;" title="' + escHtml(filename) + '"></iframe>';
+      } else {
+        inner = '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--paper-warm);border:1px solid var(--rule);margin-top:8px;">' +
+          '<span style="font-size:26px;flex-shrink:0;">' + icon + '</span>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:13px;font-weight:500;color:var(--ink);word-break:break-all;">' + escHtml(filename) + '</div>' +
+            '<div style="font-size:10px;color:var(--ink-faint);text-transform:uppercase;margin-top:2px;letter-spacing:0.08em;">' + (ext || 'file') + ' document</div>' +
+          '</div>' +
+          '<a href="' + escHtml(url) + '" target="_blank" class="btn btn-ghost btn-sm" download="' + escHtml(filename) + '" style="flex-shrink:0;">&#11015; Download</a>' +
+        '</div>';
+      }
+      return '<div class="q-answer-block">' +
+        '<div class="q-answer-label">' + icon + ' Attached file &mdash; ' + escHtml(filename) + '</div>' +
+        inner +
+      '</div>';
+    }
+
+    const typeMeta = { mcq: ['MCQ','Multiple Choice','mcq'], short_text: ['SHORT ANSWER','Short Answer','scenario'], long_text: ['LONG ANSWER','Long Answer','scenario'], long_text_attachment: ['FILE UPLOAD','File Upload + Answer','scenario'], code: ['CODE','Code','coding'] };
+
     container.innerHTML = qResults.map(q => {
       const status = !q.isAnswered ? 'unanswered' : q.isCorrect ? 'correct' : q.earnedPts > 0 ? 'partial' : 'incorrect';
       const icon = status === 'correct' ? '&#10003;' : status === 'partial' ? '&#9679;' : status === 'incorrect' ? '&#10007;' : '&#8212;';
-      const typeLabel = q.type === 'mcq' ? 'MCQ' : q.type === 'code' ? 'CODE' : q.type === 'long_text_attachment' ? 'LONG ANSWER' : 'SHORT ANSWER';
-      const typeClass = q.type === 'mcq' ? 'mcq' : q.type === 'code' ? 'coding' : 'scenario';
+      const [typeTag, typeLabel, typeClass] = typeMeta[q.type] || [q.type.toUpperCase(), q.type, 'scenario'];
 
       let detail = '';
-      if (q.type === 'mcq' && q.opts.length > 0) {
-        detail += '<div class="q-answer-block"><div class="q-answer-label">Options</div>';
-        q.opts.forEach(o => {
-          let bg = 'var(--paper-warm)', border = 'var(--rule)', color = 'var(--ink-soft)';
-          if (o.isCorrect) { bg = 'var(--ok-soft)'; border = '#c5e0ce'; color = 'var(--ok)'; }
-          else if (o.isSelected && !o.isCorrect) { bg = 'var(--bad-soft)'; border = '#e8c0b6'; color = 'var(--bad)'; }
-          detail += '<div style="padding:6px 10px;font-size:12px;margin-bottom:3px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';display:flex;gap:8px;align-items:center;">';
-          detail += '<span style="flex:1;">' + escHtml(o.text) + '</span>';
-          if (o.isCorrect) detail += '<span style="font-size:9px;font-weight:600;text-transform:uppercase;">Correct</span>';
-          if (o.isSelected && !o.isCorrect) detail += '<span style="font-size:9px;font-weight:600;text-transform:uppercase;">Selected</span>';
-          detail += '</div>';
-        });
+
+      // Full question prompt
+      detail += '<div class="q-answer-block">' +
+        '<div class="q-answer-label">Question prompt</div>' +
+        '<div style="font-size:13px;color:var(--ink);font-weight:500;line-height:1.65;padding:10px 14px;background:var(--paper-warm);border:1px solid var(--rule);white-space:pre-wrap;">' + escHtml(q.prompt || '') + '</div>' +
+      '</div>';
+
+      // MCQ options
+      if (q.type === 'mcq') {
+        detail += '<div class="q-answer-block"><div class="q-answer-label">Options &mdash; participant\'s selection highlighted</div>';
+        if (q.opts.length > 0) {
+          q.opts.forEach((o, oi) => {
+            let bg = 'var(--paper-warm)', border = 'var(--rule)', color = 'var(--ink-soft)', tagHtml = '';
+            if (o.isCorrect && o.isSelected) { bg = 'var(--ok-soft)'; border = '#c5e0ce'; color = 'var(--ok)'; tagHtml = '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 7px;background:var(--ok-soft);border:1px solid #c5e0ce;color:var(--ok);">&#10003; Correct · Selected</span>'; }
+            else if (o.isCorrect) { bg = 'var(--ok-soft)'; border = '#c5e0ce'; color = 'var(--ok)'; tagHtml = '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 7px;background:var(--ok-soft);border:1px solid #c5e0ce;color:var(--ok);">&#10003; Correct</span>'; }
+            else if (o.isSelected) { bg = 'var(--bad-soft)'; border = '#e8c0b6'; color = 'var(--bad)'; tagHtml = '<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 7px;background:var(--bad-soft);border:1px solid #e8c0b6;color:var(--bad);">&#10007; Selected</span>'; }
+            detail += '<div style="padding:9px 12px;font-size:12.5px;margin-bottom:4px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';display:flex;gap:10px;align-items:center;">' +
+              '<span style="width:18px;height:18px;border-radius:50%;border:2px solid ' + (o.isSelected ? 'currentColor' : 'var(--rule)') + ';flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;">' + (o.isSelected ? '&#9679;' : '') + '</span>' +
+              '<span style="flex:1;line-height:1.5;">' + escHtml(o.text) + '</span>' +
+              tagHtml +
+            '</div>';
+          });
+        } else {
+          detail += '<div style="font-size:12px;color:var(--ink-faint);padding:8px 0;">No options recorded</div>';
+        }
         detail += '</div>';
-      } else if (q.isAnswered) {
-        const ansBlock = q.type === 'code'
-          ? '<pre style="white-space:pre-wrap;font-family:JetBrains Mono,monospace;font-size:11px;margin:0;">' + escHtml(q.userAnswer) + '</pre>'
-          : escHtml(q.userAnswer);
-        detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text">' + ansBlock + '</div></div>';
+        if (!q.isAnswered) {
+          detail += '<div class="q-answer-block"><div class="q-answer-text" style="color:var(--ink-faint);font-style:italic;">Participant did not select an answer</div></div>';
+        }
       } else {
-        detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text" style="color:var(--ink-faint);font-style:italic;">Not answered</div></div>';
+        // Text/code/attachment-type answer
+        if (q.userAnswer) {
+          const ansBlock = q.type === 'code'
+            ? '<pre style="white-space:pre-wrap;font-family:JetBrains Mono,monospace;font-size:11px;margin:0;line-height:1.6;">' + escHtml(q.userAnswer) + '</pre>'
+            : '<div style="font-size:13px;color:var(--ink-soft);line-height:1.75;white-space:pre-wrap;">' + escHtml(q.userAnswer) + '</div>';
+          detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s written answer</div><div class="q-answer-text">' + ansBlock + '</div></div>';
+        } else if (!q.attachmentUrl) {
+          detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text" style="color:var(--ink-faint);font-style:italic;">No answer provided</div></div>';
+        }
+        // Attachment (rich display)
+        if (q.attachmentUrl) {
+          detail += attachmentCard(q.attachmentUrl);
+        }
       }
-      if (q.attachmentUrl) {
-        detail += '<div class="q-answer-block"><div class="q-answer-label">Attachment</div><a href="' + escHtml(q.attachmentUrl) + '" target="_blank" class="btn btn-ghost btn-sm" style="display:inline-flex;">View File</a></div>';
-      }
+
       if (q.feedback) {
         detail += '<div class="q-feedback"><strong>AI Feedback</strong>' + escHtml(q.feedback) + '</div>';
       }
@@ -728,7 +797,7 @@
         '<div class="q-card-header" onclick="this.nextElementSibling.classList.toggle(\'open\');this.querySelector(\'.q-expand\').textContent=this.nextElementSibling.classList.contains(\'open\')?\'−\':\'+\'">' +
           '<span class="q-icon">' + icon + '</span>' +
           '<div class="q-info">' +
-            '<div class="q-num"><span class="q-type-tag ' + typeClass + '">' + typeLabel + '</span> Question ' + q.idx + '</div>' +
+            '<div class="q-num"><span class="q-type-tag ' + typeClass + '">' + typeTag + '</span> Question ' + q.idx + (q.attachmentUrl ? ' &nbsp;<span style="font-size:9px;color:var(--ink-faint);font-weight:500;">&#128206; attachment</span>' : '') + '</div>' +
             '<div class="q-prompt-text">' + escHtml((q.prompt || '').substring(0, 150)) + (q.prompt && q.prompt.length > 150 ? '...' : '') + '</div>' +
           '</div>' +
           '<span class="q-pts">' + q.earnedPts + '/' + q.maxPts + '</span>' +
