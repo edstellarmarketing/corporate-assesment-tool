@@ -238,8 +238,286 @@
   await requireAdmin();
   const sb = getClient();
   const orgId = await getOrgId();
-  const sessionId = new URLSearchParams(window.location.search).get('session');
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionId = urlParams.get('session');
+  const inviteId = urlParams.get('invite');
 
+  if (!sessionId && !inviteId) {
+    showToast('No session or invite ID provided', 'error');
+    return;
+  }
+
+  // ============ INVITE FLOW (wizard-based token submissions) ============
+  if (inviteId) {
+    const [inviteRes, resultsRes] = await Promise.all([
+      sb.from('v2-assessment-invites').select('*').eq('id', inviteId).single(),
+      sb.from('v2-assessment-results').select('*').eq('invite_id', inviteId).maybeSingle()
+    ]);
+
+    const invite = inviteRes.data;
+    if (!invite) { showToast('Submission not found', 'error'); return; }
+
+    const [assessRes, questionsRes, responsesRes] = await Promise.all([
+      sb.from('v2-assessments').select('*').eq('id', invite.assessment_id).single(),
+      sb.from('v2-assessment-questions').select('*').eq('assessment_id', invite.assessment_id).order('order_index'),
+      sb.from('v2-assessment-responses').select('*').eq('invite_id', inviteId)
+    ]);
+
+    const assess = assessRes.data || {};
+    const questions = questionsRes.data || [];
+    const responses = responsesRes.data || [];
+    const result = resultsRes.data;
+
+    const invName = (invite.name || invite.email || '').trim();
+    const passingPct = assess.passing_score || 60;
+    const totalPoints = assess.total_points || questions.reduce((s, q) => s + (q.max_points || 10), 0);
+
+    document.title = 'Report — ' + invName;
+    document.getElementById('rpName').textContent = invName;
+    document.getElementById('rpMeta').textContent = invite.email;
+    document.getElementById('rpAssessTitle').textContent = assess.title || '--';
+    document.getElementById('rpSubmitted').textContent = invite.submitted_at
+      ? new Date(invite.submitted_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : 'Not submitted';
+    document.getElementById('rpDuration').textContent = (assess.time_limit_minutes || '--') + ' min';
+
+    const responseMap = {};
+    responses.forEach(r => { responseMap[r.question_id] = r; });
+
+    // Per-question scores from criteria_scores if graded
+    const criteriaMap = {};
+    const criteriaArr = Array.isArray(result?.criteria_scores) ? result.criteria_scores : [];
+    criteriaArr.forEach(c => { if (c.question_id) criteriaMap[c.question_id] = c; });
+
+    let answeredCount = 0, correctCount = 0;
+    const qResults = questions.map((q, i) => {
+      const r = responseMap[q.id] || {};
+      const crit = criteriaMap[q.id] || {};
+      let opts = [];
+      try { opts = Array.isArray(q.options) ? q.options : (q.options ? JSON.parse(q.options) : []); } catch(e) { opts = []; }
+
+      let userAnswer = '', correctAnswer = '', isCorrect = false, isAnswered = false;
+      if (q.type === 'mcq') {
+        const correctOpt = opts.find(o => o.is_correct);
+        correctAnswer = correctOpt ? (correctOpt.text || correctOpt.label || '') : (q.correct_answer || '');
+        userAnswer = r.answer_choice || '';
+        isAnswered = !!userAnswer;
+        isCorrect = isAnswered && userAnswer === correctAnswer;
+      } else {
+        userAnswer = r.answer_text || '';
+        isAnswered = !!userAnswer;
+        isCorrect = !!(crit.points_earned >= (q.max_points || 10));
+      }
+      if (isAnswered) answeredCount++;
+      if (isCorrect) correctCount++;
+
+      return {
+        idx: i + 1, type: q.type, prompt: q.prompt,
+        userAnswer, correctAnswer, isCorrect, isAnswered,
+        maxPts: q.max_points || 10,
+        earnedPts: crit.points_earned != null ? crit.points_earned : (isCorrect && q.type === 'mcq' ? (q.max_points || 10) : 0),
+        feedback: crit.feedback || '',
+        attachmentUrl: r.attachment_url || null,
+        opts: opts.map((o, oi) => ({
+          text: o.text || o.label || '',
+          isCorrect: !!o.is_correct,
+          isSelected: (r.answer_choice === (o.text || o.label || ''))
+        }))
+      };
+    });
+
+    const totalScore = result ? result.score : qResults.reduce((s, q) => s + q.earnedPts, 0);
+    const pct = totalPoints > 0 ? Math.round(totalScore / totalPoints * 100) : 0;
+    const passed = pct >= passingPct;
+
+    document.getElementById('rpScore').innerHTML = totalScore + '<span class="denom">/' + totalPoints + '</span>';
+    document.getElementById('rpPct').textContent = pct + '%';
+    const badge = document.getElementById('rpBadge');
+    badge.textContent = passed ? 'PASSED' : 'NOT PASSED';
+    badge.className = 'rh-badge ' + (passed ? 'pass' : 'fail');
+    document.getElementById('smScore').innerHTML = totalScore + '<span class="unit">/' + totalPoints + '</span>';
+    document.getElementById('smAnswered').innerHTML = answeredCount + '<span class="unit">/' + questions.length + '</span>';
+    document.getElementById('smCorrect').innerHTML = correctCount + '<span class="unit">/' + questions.length + '</span>';
+    document.getElementById('smPassing').innerHTML = passingPct + '<span class="unit">%</span>';
+
+    // AI feedback
+    const aiBody = document.getElementById('aiBody');
+    if (result && result.ai_feedback) {
+      aiBody.innerHTML = '<div class="ai-feedback"><p>' + result.ai_feedback + '</p></div>';
+      document.getElementById('gradeBtn').innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Re-grade with AI';
+    } else {
+      aiBody.innerHTML = '<div class="ai-loading">No AI grading yet. Click "Grade with AI" to run grading.</div>';
+    }
+
+    // Questions breakdown
+    document.getElementById('qBreakdownMeta').textContent = correctCount + ' correct · ' + answeredCount + ' answered · ' + questions.length + ' total';
+    const container = document.getElementById('questionsBreakdown');
+
+    function escHtml(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+    container.innerHTML = qResults.map(q => {
+      const status = !q.isAnswered ? 'unanswered' : q.isCorrect ? 'correct' : q.earnedPts > 0 ? 'partial' : 'incorrect';
+      const icon = status === 'correct' ? '&#10003;' : status === 'partial' ? '&#9679;' : status === 'incorrect' ? '&#10007;' : '&#8212;';
+      const typeLabel = q.type === 'mcq' ? 'MCQ' : q.type === 'code' ? 'CODE' : q.type === 'long_text_attachment' ? 'LONG ANSWER' : 'SHORT ANSWER';
+      const typeClass = q.type === 'mcq' ? 'mcq' : q.type === 'code' ? 'coding' : 'scenario';
+
+      let detail = '';
+      if (q.type === 'mcq' && q.opts.length > 0) {
+        detail += '<div class="q-answer-block"><div class="q-answer-label">Options</div>';
+        q.opts.forEach(o => {
+          let bg = 'var(--paper-warm)', border = 'var(--rule)', color = 'var(--ink-soft)';
+          if (o.isCorrect) { bg = 'var(--ok-soft)'; border = '#c5e0ce'; color = 'var(--ok)'; }
+          else if (o.isSelected && !o.isCorrect) { bg = 'var(--bad-soft)'; border = '#e8c0b6'; color = 'var(--bad)'; }
+          detail += '<div style="padding:6px 10px;font-size:12px;margin-bottom:3px;background:' + bg + ';border:1px solid ' + border + ';color:' + color + ';display:flex;gap:8px;align-items:center;">';
+          detail += '<span style="flex:1;">' + escHtml(o.text) + '</span>';
+          if (o.isCorrect) detail += '<span style="font-size:9px;font-weight:600;text-transform:uppercase;">Correct</span>';
+          if (o.isSelected && !o.isCorrect) detail += '<span style="font-size:9px;font-weight:600;text-transform:uppercase;">Selected</span>';
+          detail += '</div>';
+        });
+        detail += '</div>';
+      } else if (q.isAnswered) {
+        const ansBlock = q.type === 'code'
+          ? '<pre style="white-space:pre-wrap;font-family:JetBrains Mono,monospace;font-size:11px;margin:0;">' + escHtml(q.userAnswer) + '</pre>'
+          : escHtml(q.userAnswer);
+        detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text">' + ansBlock + '</div></div>';
+      } else {
+        detail += '<div class="q-answer-block"><div class="q-answer-label">Participant\'s answer</div><div class="q-answer-text" style="color:var(--ink-faint);font-style:italic;">Not answered</div></div>';
+      }
+      if (q.attachmentUrl) {
+        detail += '<div class="q-answer-block"><div class="q-answer-label">Attachment</div><a href="' + escHtml(q.attachmentUrl) + '" target="_blank" class="btn btn-ghost btn-sm" style="display:inline-flex;">View File</a></div>';
+      }
+      if (q.feedback) {
+        detail += '<div class="q-feedback"><strong>AI Feedback</strong>' + escHtml(q.feedback) + '</div>';
+      }
+
+      return '<div class="q-card ' + status + '">' +
+        '<div class="q-card-header" onclick="this.nextElementSibling.classList.toggle(\'open\');this.querySelector(\'.q-expand\').textContent=this.nextElementSibling.classList.contains(\'open\')?\'−\':\'+\'">' +
+          '<span class="q-icon">' + icon + '</span>' +
+          '<div class="q-info">' +
+            '<div class="q-num"><span class="q-type-tag ' + typeClass + '">' + typeLabel + '</span> Question ' + q.idx + '</div>' +
+            '<div class="q-prompt-text">' + escHtml((q.prompt || '').substring(0, 150)) + (q.prompt && q.prompt.length > 150 ? '...' : '') + '</div>' +
+          '</div>' +
+          '<span class="q-pts">' + q.earnedPts + '/' + q.maxPts + '</span>' +
+          '<span class="q-expand">+</span>' +
+        '</div>' +
+        '<div class="q-detail">' + detail + '</div>' +
+      '</div>';
+    }).join('');
+
+    // AI grading for invite mode — override the onclick attribute
+    const gradeBtnEl = document.getElementById('gradeBtn');
+    gradeBtnEl.removeAttribute('onclick');
+    gradeBtnEl.addEventListener('click', async function() {
+      const btn = this;
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:sb-spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg> Grading...';
+      aiBody.innerHTML = '<div class="ai-loading">Running AI grading...</div>';
+
+      try {
+        const { data: settingsRows } = await sb.from('v2-settings').select('key, value').eq('org_id', orgId);
+        let openrouterKey = '', aiModel = 'anthropic/claude-sonnet-4';
+        (settingsRows || []).forEach(row => {
+          let val = row.value;
+          try { val = typeof val === 'string' ? JSON.parse(val) : val; } catch(e) {}
+          if (row.key === 'openrouterKey' || row.key === 'openrouter_key') openrouterKey = val;
+          if (row.key === 'routeGrading') aiModel = val;
+        });
+        if (!openrouterKey) {
+          try { const ls = JSON.parse(localStorage.getItem('edstellar_settings') || '{}'); if (ls.openrouterKey) openrouterKey = ls.openrouterKey; } catch(e) {}
+        }
+
+        if (!openrouterKey) {
+          aiBody.innerHTML = '<div class="ai-loading" style="color:var(--bad);">OpenRouter API key not configured. Go to <a href="settings.html" style="color:var(--edstellar);text-decoration:underline;">Settings</a>.</div>';
+          btn.disabled = false; btn.innerHTML = 'Grade with AI';
+          return;
+        }
+
+        // Grade each non-MCQ question
+        let newTotalScore = 0;
+        const gradedCriteria = [];
+        for (const q of qResults) {
+          if (q.type === 'mcq') {
+            const pts = q.isCorrect ? q.maxPts : 0;
+            gradedCriteria.push({ question_id: questions[q.idx - 1].id, points_earned: pts, is_correct: q.isCorrect, feedback: q.isCorrect ? 'Correct' : 'Incorrect — correct answer: ' + q.correctAnswer });
+            newTotalScore += pts;
+          } else if (q.isAnswered) {
+            const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + openrouterKey, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: aiModel,
+                messages: [
+                  { role: 'system', content: 'You are grading an assessment answer. Respond ONLY with JSON: {"score": <number>, "feedback": "<text>"}. Score must be 0 to max_points.' },
+                  { role: 'user', content: 'Question: ' + q.prompt + '\n\nAnswer: ' + q.userAnswer + '\n\nMax points: ' + q.maxPts }
+                ]
+              })
+            });
+            const rj = await resp.json();
+            let parsed = {};
+            try { const raw = rj.choices?.[0]?.message?.content || '{}'; parsed = JSON.parse(raw.replace(/```json|```/g, '').trim()); } catch(e) {}
+            const earned = Math.min(q.maxPts, Math.max(0, parsed.score || 0));
+            gradedCriteria.push({ question_id: questions[q.idx - 1].id, points_earned: earned, is_correct: earned >= q.maxPts, feedback: parsed.feedback || '' });
+            newTotalScore += earned;
+          } else {
+            gradedCriteria.push({ question_id: questions[q.idx - 1].id, points_earned: 0, is_correct: false, feedback: 'Not answered' });
+          }
+        }
+
+        const newPct = totalPoints > 0 ? Math.round(newTotalScore / totalPoints * 100) : 0;
+        const newPassed = newPct >= passingPct;
+
+        // Generate overall narrative
+        let aiNarrative = '';
+        try {
+          const narResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + openrouterKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: aiModel,
+              messages: [
+                { role: 'system', content: 'You are writing a concise grading summary for an assessment. Be specific and actionable.' },
+                { role: 'user', content: 'Participant: ' + invName + '\nAssessment: ' + (assess.title || '') + '\nScore: ' + newTotalScore + '/' + totalPoints + ' (' + newPct + '%) - ' + (newPassed ? 'PASSED' : 'NOT PASSED') + '\n\nPer-question results:\n' + gradedCriteria.map((c, i) => 'Q' + (i+1) + ': ' + c.points_earned + '/' + qResults[i].maxPts + ' — ' + c.feedback).join('\n') + '\n\nWrite a 2-3 sentence summary.' }
+              ]
+            })
+          });
+          const nj = await narResp.json();
+          aiNarrative = nj.choices?.[0]?.message?.content || '';
+        } catch(e) {}
+
+        // Upsert result
+        await sb.from('v2-assessment-results').upsert({
+          invite_id: inviteId,
+          assessment_id: invite.assessment_id,
+          score: newTotalScore,
+          total_points: totalPoints,
+          passed: newPassed,
+          ai_feedback: aiNarrative,
+          criteria_scores: gradedCriteria,
+          graded_at: new Date().toISOString()
+        }, { onConflict: 'invite_id' });
+
+        // Update invite status
+        await sb.from('v2-assessment-invites').update({ status: 'graded' }).eq('id', inviteId);
+
+        showToast('Grading complete', 'success');
+        window.location.reload();
+      } catch(err) {
+        showToast('Grading failed: ' + err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Grade with AI';
+      }
+    });
+
+    // Hide send button for invite mode (can enhance later)
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.style.display = 'none';
+    const certBtn = document.getElementById('issueCertBtn');
+    if (certBtn) certBtn.style.display = 'none';
+
+    return; // stop session flow
+  }
+
+  // ============ SESSION FLOW (existing) ============
   if (!sessionId) {
     showToast('No session ID provided', 'error');
     return;

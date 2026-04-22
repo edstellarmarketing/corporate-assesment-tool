@@ -226,7 +226,7 @@
   let allCertificates = [];
 
   async function loadAll() {
-    const [assessRes, sessRes, deptRes, progRes, qCountRes, certRes] = await Promise.all([
+    const [assessRes, sessRes, deptRes, progRes, qCountRes, certRes, inviteRes, resultsRes, aqCountRes] = await Promise.all([
       sb.from('v2-assessments').select('*').eq('org_id', orgId).order('created_at', { ascending: false }),
       sb.from('v2-sessions')
         .select('*, "v2-users"(id, first_name, last_name, email, department_id, "v2-departments"(name)), "v2-assessments"(id, title, passing_score, total_points, programme_id)')
@@ -235,21 +235,74 @@
       sb.from('v2-departments').select('*').eq('org_id', orgId).order('name'),
       sb.from('v2-programmes').select('*').eq('org_id', orgId).order('name'),
       sb.from('v2-questions').select('assessment_id'),
-      sb.from('v2-certificates').select('session_id, verification_code').eq('org_id', orgId)
+      sb.from('v2-certificates').select('session_id, verification_code').eq('org_id', orgId),
+      // Wizard-based submissions (token flow)
+      sb.from('v2-assessment-invites')
+        .select('*')
+        .eq('org_id', orgId)
+        .in('status', ['submitted', 'graded'])
+        .order('submitted_at', { ascending: false }),
+      // Scores for graded wizard submissions
+      sb.from('v2-assessment-results').select('*'),
+      // Wizard question counts (different table from old flow)
+      sb.from('v2-assessment-questions').select('assessment_id')
     ]);
 
     allAssessments = assessRes.data || [];
-    allSessions = sessRes.data || [];
     departments = deptRes.data || [];
     programmes = progRes.data || [];
     allCertificates = certRes.data || [];
 
-    // Count questions per assessment
+    // Count questions per assessment — old schema (v2-questions) + new schema (v2-assessment-questions)
     const qCounts = {};
     (qCountRes.data || []).forEach(q => { qCounts[q.assessment_id] = (qCounts[q.assessment_id] || 0) + 1; });
+    (aqCountRes.data || []).forEach(q => { qCounts[q.assessment_id] = (qCounts[q.assessment_id] || 0) + 1; });
     allAssessments.forEach(a => { a._questionCount = qCounts[a.id] || 0; });
 
-    // Count submissions per assessment
+    // Build lookup maps for normalizing invite rows
+    const assessMap = {};
+    allAssessments.forEach(a => { assessMap[a.id] = a; });
+
+    const resultsMap = {};
+    (resultsRes.data || []).forEach(r => { if (r.invite_id) resultsMap[r.invite_id] = r; });
+
+    // Normalize wizard invite submissions into session-compatible shape
+    const inviteRows = (inviteRes.data || []).map(inv => {
+      const assess = assessMap[inv.assessment_id] || {};
+      const result = resultsMap[inv.id];
+      const nameParts = (inv.name || '').trim().split(' ');
+      return {
+        id: inv.id,
+        assessment_id: inv.assessment_id,
+        status: inv.status,
+        submitted_at: inv.submitted_at,
+        total_score: result ? result.score : null,
+        _isInvite: true,
+        'v2-users': {
+          first_name: nameParts[0] || '',
+          last_name: nameParts.slice(1).join(' ') || '',
+          email: inv.email,
+          department_id: null,
+          'v2-departments': null
+        },
+        'v2-assessments': {
+          id: inv.assessment_id,
+          title: assess.title || '',
+          passing_score: assess.passing_score || 60,
+          total_points: result ? result.total_points : (assess.total_points || null),
+          programme_id: assess.programme_id || null
+        }
+      };
+    });
+
+    // Merge session + invite submissions sorted by submitted_at desc
+    allSessions = [...(sessRes.data || []), ...inviteRows].sort((a, b) => {
+      const ta = a.submitted_at ? new Date(a.submitted_at).getTime() : 0;
+      const tb = b.submitted_at ? new Date(b.submitted_at).getTime() : 0;
+      return tb - ta;
+    });
+
+    // Count submissions per assessment (both sources)
     const subCounts = {};
     allSessions.forEach(s => { subCounts[s.assessment_id] = (subCounts[s.assessment_id] || 0) + 1; });
     allAssessments.forEach(a => { a._submissionCount = subCounts[a.id] || 0; });
@@ -393,7 +446,7 @@
         '<td><span class="status-tag ' + (isGraded ? 'graded' : 'submitted') + '">' + (isGraded ? 'Graded' : 'Pending') + '</span></td>' +
         '<td>' + certHtml + '</td>' +
         '<td style="font-size:11px;color:var(--ink-faint);">' + submitted + '</td>' +
-        '<td><a href="admin_assessment_report.html?session=' + s.id + '" class="btn btn-primary btn-sm">Review</a></td>' +
+        '<td><a href="admin_assessment_report.html?' + (s._isInvite ? 'invite=' : 'session=') + s.id + '" class="btn btn-primary btn-sm">Review</a></td>' +
       '</tr>';
     }).join('');
   }

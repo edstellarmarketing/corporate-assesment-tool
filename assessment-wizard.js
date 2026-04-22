@@ -596,6 +596,8 @@
     const orgId = await getOrgId();
     const current = await getCurrentUser();
 
+    const totalPts = wiz.questions.reduce((s, q) => s + (q.maxPoints || 10), 0);
+
     const { data: assessData, error: assessErr } = await sb
       .from('v2-assessments')
       .insert({
@@ -604,6 +606,7 @@
         scope: wiz.scope,
         group_size: wiz.groupSize,
         total_questions: wiz.questionCount,
+        total_points: totalPts,
         passing_score: wiz.passingScore,
         time_limit_minutes: wiz.timeLimitMinutes,
         instructions: wiz.instructions,
